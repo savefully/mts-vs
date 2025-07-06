@@ -12,7 +12,7 @@ $cryptoKeysPath = 'C:\ProgramData\Application Data\Microsoft\Crypto\Keys'
 $citrixSelfServicePath = 'C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe'
 $customRunBatCode = @'
 @echo off
-start "Genesys SIP Phone" "C:\Users\Public\Downloads\Genesys SIP Phone\GenesysSIPPhone.exe" -config genesys
+start "Genesys SIP Phone" "GenesysSIPPhone.exe" -config genesys
 exit   
 '@
 $separator = '----------------------------------------------------------------------------------------------------'
