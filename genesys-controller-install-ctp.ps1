@@ -7,7 +7,6 @@ scriptPath = shell.ExpandEnvironmentStrings("%USERPROFILE%\Documents\genesysCont
 shell.Run "powershell.exe -WindowStyle Hidden -NoProfile -File """ & scriptPath & """ -Tag genesysControllerWorker -Context """ & arg & """", 0, False
 '@
 $psScript = @'
-# fixed task name. now with username
 param(
     [string]$Context = 'Installation'
 )
@@ -53,24 +52,17 @@ function HandleTask {
         Write-Host "Task $TaskName registered."
     }
 }
-
 if ($Context -ne 'Startup') {
     HandleStartupShortcut
 }
-
 if ($Context -ne 'Task') {
     HandleTask
 }
-
 if ($Context -eq 'Installation') {
-    pause;
     exit;
 }
-
 $SameScriptProcesses = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like "*genesysControllerWorker*" };
-if ($SameScriptProcesses.length) { # $SameScriptProcess.length exist if >= 2
-    exit;    
-}
+if ($SameScriptProcesses.length) {exit;}
 $iteration = 1;
 $ctpPath = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Genesys Telecommunications Laboratories\Workspace Desktop Edition\Call_To_Phone.appref-ms";
 while ($true) {
@@ -98,9 +90,22 @@ while ($true) {
     Start-Sleep -Seconds 5;
 }
 '@
-
+function HandleCTP {    
+    if ( -not (Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Genesys Telecommunications Laboratories\Workspace Desktop Edition\Call_To_Phone.appref-ms") ) {
+        Write-Host '[x] Call_To_Phone is not installed. Downloading...'
+        $ctpUrl = 'http://w0001-wfm07.msk.mts.ru/InteractionWorkspace/Call_To_Phone.application'
+        $ctpOutfile = 'P:\Downloads\Call_To_Phone.application'
+        Invoke-WebRequest -Uri $ctpUrl -OutFile $ctpOutfile
+        if (Test-Path $ctpOutfile) {
+            Write-Host 'Start Call_To_Phone...'
+            Start-Process $ctpOutfile
+        }
+    } else {
+        Write-Host '[+] Call_To_Phone is already installed.'
+    }
+}
+HandleCTP
 New-Item -Path $path -ItemType Directory -Force | Out-Null
 Set-Content -Path "$path\hiddenGenesysControllerLauncher.vbs" -Value $vbsScript
 Set-Content -Path "$path\genesysController.ps1" -Value $psScript
-
 powershell.exe -File "$path\genesysController.ps1"
