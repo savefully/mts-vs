@@ -48,9 +48,9 @@ function WH {
 }
 function RunCmd {
     param([string]$Command)
-    $output = & cmd /c "$Command 2>&1"
+    $output = & cmd /c "chcp 65001>nul & $Command 2>&1"
     $output | ForEach-Object { 
-        Write-Host $_ -ForegroundColor White
+        Write-Host $_
     }
     return $LASTEXITCODE
 }
