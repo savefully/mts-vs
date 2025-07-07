@@ -238,7 +238,7 @@ function Attempt {
     catch { Write-Error $_ }
     return $result;
 }
-Write-Host "`n==== MTC BC software script-helper ===="
+Write-Host "`n==== MTC BC setup-helper ===="
 Precheck
 CheckIfGenesysAlreadyInstalledByThisScript
 $caseResult = $null
