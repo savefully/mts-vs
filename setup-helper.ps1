@@ -88,9 +88,9 @@ function SetUpdatePolicy {
         Remove-ItemProperty -Path $ServicingPath -Name "UseWindowsUpdate"
     }
     Set-ItemProperty -Path $ServicingPath -Name "RepairContentServerSource" -Value 2
-    cmd /c "gpupdate /force"
-    cmd /c "net stop wuauserv"
-    cmd /c "net start wuauserv"
+    RunCmd "gpupdate /force"
+    RunCmd "net stop wuauserv"
+    RunCmd "net start wuauserv"
 }
 function SetFirewallRules {
     $programPath = "$gspPath\GenesysSIPPhone.exe"
