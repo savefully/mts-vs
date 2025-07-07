@@ -229,7 +229,7 @@ function Case {
     } elseif ($action -eq "8") {
         SetUpdatePolicy
     } elseif ($action -eq "9") {
-        cmd /c "dism.exe /online /enable-feature /featurename:NetFX3"
+        RunCmd "dism.exe /online /enable-feature /featurename:NetFX3"
     } elseif ($action -eq "10") {
         SetFirewallRules
     } elseif ($action -eq "11") {
