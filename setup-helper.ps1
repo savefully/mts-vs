@@ -46,6 +46,14 @@ function WH {
     Write-Host $separator
     Write-Host $item
 }
+function RunCmd {
+    param([string]$Command)
+    $output = & cmd /c "$Command 2>&1"
+    $output | ForEach-Object { 
+        Write-Host $_ -ForegroundColor White
+    }
+    return $LASTEXITCODE
+}
 function HandleAutoclosingRunBat {
     Rename-Item -Path "$gspPath\RUN.bat" -NewName "ORIGINAL_RUN.bat"
     Set-Content -Path "$gspPath\RUN.bat" -Value $customRunBatCode
