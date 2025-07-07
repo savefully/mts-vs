@@ -49,7 +49,7 @@ function WH {
 function HandleAutoclosingRunBat {
     Rename-Item -Path "$gspPath\RUN.bat" -NewName "ORIGINAL_RUN.bat"
     Set-Content -Path "$gspPath\RUN.bat" -Value $customRunBatCode
-    WH 'RUN.bat processed.'
+    WH 'RUN.bat is processed.'
 }
 function CreateShortcut {
     $WshShell = New-Object -ComObject WScript.Shell
@@ -80,9 +80,9 @@ function SetUpdatePolicy {
         Remove-ItemProperty -Path $ServicingPath -Name "UseWindowsUpdate"
     }
     Set-ItemProperty -Path $ServicingPath -Name "RepairContentServerSource" -Value 2
-    gpupdate /force
-    net stop wuauserv
-    net start wuauserv
+    cmd /c "gpupdate /force"
+    cmd /c "net stop wuauserv"
+    cmd /c "net start wuauserv"
 }
 function SetFirewallRules {
     $programPath = "$gspPath\GenesysSIPPhone.exe"
@@ -221,7 +221,7 @@ function Case {
     } elseif ($action -eq "8") {
         SetUpdatePolicy
     } elseif ($action -eq "9") {
-        dism.exe /online /enable-feature /featurename:NetFX3
+        cmd /c "dism.exe /online /enable-feature /featurename:NetFX3"
     } elseif ($action -eq "10") {
         SetFirewallRules
     } elseif ($action -eq "11") {
