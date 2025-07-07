@@ -45,7 +45,6 @@ function WH {
     param( $item )
     Write-Host $separator
     Write-Host $item
-    Write-Host $separator
 }
 function HandleAutoclosingRunBat {
     Rename-Item -Path "$gspPath\RUN.bat" -NewName "ORIGINAL_RUN.bat"
