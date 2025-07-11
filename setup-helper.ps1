@@ -3,6 +3,7 @@
 
 $iconFile = 'app_yellow.ico';
 $archivePath = 'C:\Genesys SIP Phone.zip'
+$archivePathCC = 'C:\Genesys_SIP_Phone.zip'
 $gspPath = 'C:\Users\Public\Downloads\Genesys SIP Phone'
 $shortcutPath = 'C:\Users\Public\Desktop\Genesys SIP Phone.lnk'
 $machineKeysPath = 'C:\ProgramData\Microsoft\Crypto\RSA\MachineKeys'
@@ -21,7 +22,7 @@ $separator
 0 - Exit
 
 1 - Precheck (NetFx3 state; Kerio and Citrix versions)
-2 - Expand archive: $archivePath > $gspPath
+2 - Expand archive: $archivePath or $archivePathCC
 3 - Remove archive: $archivePath
 4 - Create shortcut: $shortcutPath
 5 - Set 6-sign number
@@ -46,10 +47,18 @@ function WH {
     Write-Host $separator
     Write-Host $item
 }
+function RunCmd {
+    param([string]$Command)
+    $output = & cmd /c "chcp 65001>nul & $Command 2>&1"
+    $output | ForEach-Object { 
+        Write-Host $_
+    }
+    return $LASTEXITCODE
+}
 function HandleAutoclosingRunBat {
     Rename-Item -Path "$gspPath\RUN.bat" -NewName "ORIGINAL_RUN.bat"
     Set-Content -Path "$gspPath\RUN.bat" -Value $customRunBatCode
-    WH 'RUN.bat processed.'
+    WH 'RUN.bat is processed: Auto close after launch'
 }
 function CreateShortcut {
     $WshShell = New-Object -ComObject WScript.Shell
@@ -80,9 +89,9 @@ function SetUpdatePolicy {
         Remove-ItemProperty -Path $ServicingPath -Name "UseWindowsUpdate"
     }
     Set-ItemProperty -Path $ServicingPath -Name "RepairContentServerSource" -Value 2
-    gpupdate /force
-    net stop wuauserv
-    net start wuauserv
+    RunCmd "gpupdate /force"
+    Stop-Service wuauserv -Force
+    Start-Service wuauserv
 }
 function SetFirewallRules {
     $programPath = "$gspPath\GenesysSIPPhone.exe"
@@ -94,7 +103,6 @@ function SetFirewallRules {
     $outboundRuleExists = Where-Object { ($programRule.DisplayName -eq $outboundRuleName) -and ($programRule.Direction -eq 'Outbound') }
 
     if (-not $inboundRuleExists) {
-        WH "Creating inbound rule..."
         New-NetFirewallRule `
             -DisplayName $inboundRuleName `
             -Direction Inbound `
@@ -108,7 +116,6 @@ function SetFirewallRules {
     }
 
     if (-not $outboundRuleExists) {
-        WH "Creating outbound rule..."
         New-NetFirewallRule `
             -DisplayName $outboundRuleName `
             -Direction Outbound `
@@ -202,10 +209,15 @@ function Case {
     } elseif ($action -eq "1") {
         Precheck
     } elseif ($action -eq "2") {
-        if (-not (Test-Path $archivePath) ) {
-            throw "$archivePath is not found."
+        $path = $archivePathCC
+        if (-not (Test-Path $archivePathCC) ) {
+            if (Test-Path $archivePath) {
+                $path = $archivePath
+            } else {
+                throw "Archive is not found."
+            }
         }
-        Expand-Archive -Path $archivePath -DestinationPath "C:\Users\Public\Downloads" -Force
+        Expand-Archive -Path $path -DestinationPath "C:\Users\Public\Downloads" -Force
         WH "Archive expanded: C:\Users\Public\Downloads"
     } elseif ($action -eq "3") {
         Remove-Item -Path $archivePath
@@ -221,7 +233,7 @@ function Case {
     } elseif ($action -eq "8") {
         SetUpdatePolicy
     } elseif ($action -eq "9") {
-        dism.exe /online /enable-feature /featurename:NetFX3
+        RunCmd "dism.exe /online /enable-feature /featurename:NetFX3"
     } elseif ($action -eq "10") {
         SetFirewallRules
     } elseif ($action -eq "11") {
