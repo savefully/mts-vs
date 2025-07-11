@@ -58,7 +58,7 @@ function RunCmd {
 function HandleAutoclosingRunBat {
     Rename-Item -Path "$gspPath\RUN.bat" -NewName "ORIGINAL_RUN.bat"
     Set-Content -Path "$gspPath\RUN.bat" -Value $customRunBatCode
-    WH 'RUN.bat is processed.'
+    WH 'RUN.bat is processed: Auto close after launch'
 }
 function CreateShortcut {
     $WshShell = New-Object -ComObject WScript.Shell
@@ -103,7 +103,6 @@ function SetFirewallRules {
     $outboundRuleExists = Where-Object { ($programRule.DisplayName -eq $outboundRuleName) -and ($programRule.Direction -eq 'Outbound') }
 
     if (-not $inboundRuleExists) {
-        WH "Creating inbound rule..."
         New-NetFirewallRule `
             -DisplayName $inboundRuleName `
             -Direction Inbound `
@@ -117,7 +116,6 @@ function SetFirewallRules {
     }
 
     if (-not $outboundRuleExists) {
-        WH "Creating outbound rule..."
         New-NetFirewallRule `
             -DisplayName $outboundRuleName `
             -Direction Outbound `
