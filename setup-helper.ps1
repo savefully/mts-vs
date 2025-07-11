@@ -3,6 +3,7 @@
 
 $iconFile = 'app_yellow.ico';
 $archivePath = 'C:\Genesys SIP Phone.zip'
+$archivePathCC = 'C:\Genesys_SIP_Phone.zip'
 $gspPath = 'C:\Users\Public\Downloads\Genesys SIP Phone'
 $shortcutPath = 'C:\Users\Public\Desktop\Genesys SIP Phone.lnk'
 $machineKeysPath = 'C:\ProgramData\Microsoft\Crypto\RSA\MachineKeys'
@@ -21,7 +22,7 @@ $separator
 0 - Exit
 
 1 - Precheck (NetFx3 state; Kerio and Citrix versions)
-2 - Expand archive: $archivePath > $gspPath
+2 - Expand archive: $archivePath or $archivePathCC
 3 - Remove archive: $archivePath
 4 - Create shortcut: $shortcutPath
 5 - Set 6-sign number
@@ -210,10 +211,15 @@ function Case {
     } elseif ($action -eq "1") {
         Precheck
     } elseif ($action -eq "2") {
-        if (-not (Test-Path $archivePath) ) {
-            throw "$archivePath is not found."
+        $path = $archivePathCC
+        if (-not (Test-Path $archivePathCC) ) {
+            if (Test-Path $archivePath) {
+                $path = $archivePath
+            } else {
+                throw "Archive is not found."
+            }
         }
-        Expand-Archive -Path $archivePath -DestinationPath "C:\Users\Public\Downloads" -Force
+        Expand-Archive -Path $path -DestinationPath "C:\Users\Public\Downloads" -Force
         WH "Archive expanded: C:\Users\Public\Downloads"
     } elseif ($action -eq "3") {
         Remove-Item -Path $archivePath
