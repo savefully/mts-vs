@@ -11,11 +11,15 @@ $NetFx3Path = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5"
 $kvpncguiPath = 'C:\Program Files (x86)\Kerio\VPN Client\kvpncgui.exe'
 $cryptoKeysPath = 'C:\ProgramData\Application Data\Microsoft\Crypto\Keys'
 $citrixSelfServicePath = 'C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe'
-$customRunBatCode = @'
+$customRunBatCode = @"
 @echo off
-start "Genesys SIP Phone" "GenesysSIPPhone.exe" -config genesys
+if exist "GenesysSIPPhone.exe" (
+    start "Genesys SIP Phone" "GenesysSIPPhone.exe" -config genesys
+) else (
+    start "Genesys SIP Phone" "$gspPath\GenesysSIPPhone.exe" -config genesys
+)
 exit   
-'@
+"@
 $separator = '----------------------------------------------------------------------------------------------------'
 $menuString = @"
 $separator
@@ -24,7 +28,7 @@ $separator
 1 - Precheck (NetFx3 state; Kerio and Citrix versions)
 2 - Expand archive: $archivePath or $archivePathCC
 3 - Remove archive: $archivePath
-4 - Create shortcut: $shortcutPath
+4 - Create shortcut: $shortcutPath (GenesysSIPPhone.exe -config genesys)
 5 - Set 6-sign number
 
 ComponentActivator fixes:
@@ -38,7 +42,7 @@ NetFx3 installation:
 Tools:
 10 - Set firewall rules for GenesysSIPPhone.exe
 11 - Add kerio .104 connection (reconnect 1st connection in kerio before it)
-12 - Set custom RUN.bat (auto close)
+12 - Set custom RUN.bat (auto close and absolute path)
 $separator
 Input:
 "@
@@ -56,18 +60,18 @@ function RunCmd {
     return $LASTEXITCODE
 }
 function HandleAutoclosingRunBat {
-    Rename-Item -Path "$gspPath\RUN.bat" -NewName "ORIGINAL_RUN.bat"
     Set-Content -Path "$gspPath\RUN.bat" -Value $customRunBatCode
     WH 'RUN.bat is processed: Auto close after launch'
 }
 function CreateShortcut {
     $WshShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WshShell.CreateShortcut($shortcutPath)
-    $Shortcut.TargetPath = "$gspPath\RUN.bat"
+    $Shortcut.TargetPath = "$gspPath\GenesysSIPPhone.exe"
+    $Shortcut.Arguments = "-config genesys"
     $Shortcut.IconLocation = "$gspPath\$iconFile"
     $Shortcut.WorkingDirectory = [System.IO.Path]::GetDirectoryName("$gspPath\RUN.bat")
     $Shortcut.WindowStyle = 1
-    $Shortcut.Description = "Link RUN.bat"
+    $Shortcut.Description = "Genesys SIP Phone"
     $Shortcut.Save();
     WH "Shortcut created: C:\Users\Public\Desktop"
 }
