@@ -26,9 +26,9 @@ $separator
 0 - Exit
 
 1 - Precheck (NetFx3 state; Kerio and Citrix versions)
-2 - Expand archive: $archivePath or $archivePathCC
-3 - Remove archive: $archivePath
-4 - Create shortcut: $shortcutPath (GenesysSIPPhone.exe -config genesys)
+2 - Expand Genesys archive
+3 - Remove Genesys archive
+4 - Create shortcut: $shortcutPath
 5 - Set 6-sign number
 
 ComponentActivator fixes:
@@ -69,9 +69,9 @@ function RunCmd {
     return $LASTEXITCODE
 }
 function ChoosePathByRegex {
-    param {
+    param (
         $regex
-    }
+    )
     $filenames = Get-ChildItem -Path "C:\" -Filter $regex | Select-Object -ExpandProperty Name
     if ($filenames.Count -eq 0) {
         throw "There are no `"$regex`" installers on C:\"
