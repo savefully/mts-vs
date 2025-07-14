@@ -26,9 +26,9 @@ $separator
 0 - Exit
 
 1 - Precheck (NetFx3 state; Kerio and Citrix versions)
-2 - Expand archive: $archivePath or $archivePathCC
-3 - Remove archive: $archivePath
-4 - Create shortcut: $shortcutPath (GenesysSIPPhone.exe -config genesys)
+2 - Expand Genesys archive
+3 - Remove Genesys archive
+4 - Create shortcut: $shortcutPath
 5 - Set 6-sign number
 
 ComponentActivator fixes:
@@ -43,6 +43,13 @@ Tools:
 10 - Set firewall rules for GenesysSIPPhone.exe
 11 - Add kerio .104 connection (reconnect 1st connection in kerio before it)
 12 - Set custom RUN.bat (auto close and absolute path)
+
+Common case:
+13 - Download Genesys_SIP_Phone.zip
+14 - Basic Genesys installation: 2, 3, 4, 10, 12
+15 - Disable firewall
+
+16 - Install Kerio-msi from C:\
 $separator
 Input:
 "@
@@ -59,13 +66,47 @@ function RunCmd {
     }
     return $LASTEXITCODE
 }
+function ChoosePathByRegex {
+    param (
+        $regex
+    )
+    $filenames = Get-ChildItem -Path "C:\" -Filter $regex | Select-Object -ExpandProperty Name
+    if ($filenames.Count -eq 0) {
+        throw "There are no `"$regex`" installers on C:\"
+    }
+    $menu = "0 - Exit installation`n"
+    $n = 1
+    foreach ($name in $filenames) {
+        $menu += [string]$n + " - " + $name + "`n"
+        $n++
+    }
+    WH "$menu"
+    WH "Input:"
+    $choice = Read-Host "-"
+    if ($choice -eq '0') {
+        return 'exit'
+    }
+    $choice = [int]$choice
+    return $filenames[$choice-1]
+}
+function InstallMSI {
+    param (
+        $msiPath
+    )
+    $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i", $msiPath, "/quiet" -Wait -PassThru
+    if ($process.ExitCode -eq 0) {
+        WH 'Installation: success.'
+    } else {
+        WH "Installation: error. Exit code: $($process.ExitCode)"
+    }
+}
 function HandleAutoclosingRunBat {
     Set-Content -Path "$gspPath\RUN.bat" -Value $customRunBatCode
-    WH 'RUN.bat is processed: Auto close after launch'
+    WH 'RUN.bat is processed: auto close after launch and absolute path to .exe'
 }
 function CreateShortcut {
     $WshShell = New-Object -ComObject WScript.Shell
-    $Shortcut = $WshShell.CreateShortcut($shortcutPath)
+    $Shortcut = $WshShell.CreateShortcut("$gspPath\Genesys SIP Phone.lnk")
     $Shortcut.TargetPath = "$gspPath\GenesysSIPPhone.exe"
     $Shortcut.Arguments = "-config genesys"
     $Shortcut.IconLocation = "$gspPath\$iconFile"
@@ -73,7 +114,7 @@ function CreateShortcut {
     $Shortcut.WindowStyle = 1
     $Shortcut.Description = "Genesys SIP Phone"
     $Shortcut.Save();
-    WH "Shortcut created: C:\Users\Public\Desktop"
+    WH "Shortcut created: $gspPath"
 }
 function Set6signNumber {
     Write-Host "6-sign number: "
@@ -205,6 +246,18 @@ function CheckIfGenesysAlreadyInstalledByThisScript {
         WH "ALREADY EXISTS: $shortcutPath"
     }
 }
+function HandleExpanding {
+    $path = $archivePathCC
+    if (-not (Test-Path $archivePathCC) ) {
+        if (Test-Path $archivePath) {
+            $path = $archivePath
+        } else {
+            throw "Archive is not found."
+        }
+    }
+    Expand-Archive -Path $path -DestinationPath "C:\Users\Public\Downloads" -Force
+    WH "Archive expanded: C:\Users\Public\Downloads"
+}
 function Case {    
     Write-Host $menuString
     $action = Read-Host "-"
@@ -213,21 +266,14 @@ function Case {
     } elseif ($action -eq "1") {
         Precheck
     } elseif ($action -eq "2") {
-        $path = $archivePathCC
-        if (-not (Test-Path $archivePathCC) ) {
-            if (Test-Path $archivePath) {
-                $path = $archivePath
-            } else {
-                throw "Archive is not found."
-            }
-        }
-        Expand-Archive -Path $path -DestinationPath "C:\Users\Public\Downloads" -Force
-        WH "Archive expanded: C:\Users\Public\Downloads"
+        HandleExpanding
     } elseif ($action -eq "3") {
         Remove-Item -Path $archivePath
         WH "$archivePath removed."
     } elseif ($action -eq "4") {
-       CreateShortcut 
+        CreateShortcut
+        Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
+        WH "Shortcut created: C:\Users\Public\Desktop"
     } elseif ($action -eq "5") {
         Set6signNumber
     } elseif ($action -eq "6") {
@@ -244,7 +290,38 @@ function Case {
         AddKerioConnection '194.0.162.104'
     } elseif ($action -eq "12") {
         HandleAutoclosingRunBat
-    }
+    } elseif ($action -eq "13") {
+        RunCmd 'curl --output "C:\Genesys_SIP_Phone.zip" https://soft.contact-centre.ru/Genesys_SIP_Phone.zip'
+    } elseif ($action -eq "14") {
+        HandleExpanding
+        Remove-Item -Path $archivePath
+        WH "$archivePath removed."
+        CreateShortcut
+        Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
+        WH "Shortcut created: C:\Users\Public\Desktop"
+        SetFirewallRules
+        HandleAutoclosingRunBat
+    } elseif ($action -eq "15") {
+        Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+        WH "Firewall is disabled."
+    } elseif ($action -eq "16") {
+        $filename = ChoosePathByRegex "*kerio*.msi"
+        if ($filename -eq 'exit') {
+            return $null
+        }
+        InstallMSI "C:\$filename"
+    } elseif ($action -eq "17") {
+        # $filename = ChoosePathByRegex "*citrix*.exe"
+        # if ($filename -eq 'exit') {
+        #     return $null
+        # }
+        # $process = Start-Process -FilePath "C:\$filename" -ArgumentList "/silent /noreboot /forceinstall /AutoUpdateCheck=disabled /EnableCEIP=false" -Wait -NoNewWindow -PassThru
+        # if ($process.ExitCode -eq 0) {
+        #     WH 'Installation: success.'
+        # } else {
+        #     WH "Installation: error. Exit code: $($process.ExitCode)"
+        # }
+    } 
 }
 function Attempt {
     param([ScriptBlock]$Callback)
