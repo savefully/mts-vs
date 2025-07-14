@@ -11,6 +11,7 @@ $NetFx3Path = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5"
 $kvpncguiPath = 'C:\Program Files (x86)\Kerio\VPN Client\kvpncgui.exe'
 $cryptoKeysPath = 'C:\ProgramData\Application Data\Microsoft\Crypto\Keys'
 $citrixSelfServicePath = 'C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe'
+$downloadDomain = $null
 $customRunBatCode = @"
 @echo off
 if exist "GenesysSIPPhone.exe" (
@@ -66,6 +67,11 @@ function RunCmd {
     }
     return $LASTEXITCODE
 }
+function specifyDownloadDomain {
+    if ($global:downloadDomain) { return }
+    WH 'Input domain: https://soft.?.ru'
+    $global:downloadDomain = Read-Host ":"
+}
 function ChoosePathByRegex {
     param (
         $regex
@@ -82,7 +88,7 @@ function ChoosePathByRegex {
     }
     WH "$menu"
     WH "Input:"
-    $choice = Read-Host "-"
+    $choice = Read-Host ":"
     if ($choice -eq '0') {
         return 'exit'
     }
@@ -118,7 +124,7 @@ function CreateShortcut {
 }
 function Set6signNumber {
     Write-Host "6-sign number: "
-    $sixSignNumber = Read-Host "-"
+    $sixSignNumber = Read-Host ":"
     [xml]$phoneConfig = Get-Content -Path "$gspPath\Config\genesys_phoneConfig.xml"
     $phoneConfig.configuration['sip-endpoint'].user.setAttribute('name', $sixSignNumber);
     $phoneConfig.Save("$gspPath\Config\genesys_phoneConfig.xml")
@@ -260,7 +266,7 @@ function HandleExpanding {
 }
 function Case {    
     Write-Host $menuString
-    $action = Read-Host "-"
+    $action = Read-Host ":"
     if ($action -eq "0") {
         return 'exit';
     } elseif ($action -eq "1") {
@@ -291,7 +297,8 @@ function Case {
     } elseif ($action -eq "12") {
         HandleAutoclosingRunBat
     } elseif ($action -eq "13") {
-        RunCmd 'curl --output "C:\Genesys_SIP_Phone.zip" https://soft.contact-centre.ru/Genesys_SIP_Phone.zip'
+        specifyDownloadDomain
+        RunCmd ('curl --output "C:\Genesys_SIP_Phone.zip" https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip')
     } elseif ($action -eq "14") {
         HandleExpanding
         Remove-Item -Path $archivePath
@@ -306,9 +313,7 @@ function Case {
         WH "Firewall is disabled."
     } elseif ($action -eq "16") {
         $filename = ChoosePathByRegex "*kerio*.msi"
-        if ($filename -eq 'exit') {
-            return $null
-        }
+        if ($filename -eq 'exit') { return }
         InstallMSI "C:\$filename"
     } elseif ($action -eq "17") {
         # $filename = ChoosePathByRegex "*citrix*.exe"
