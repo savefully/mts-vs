@@ -48,7 +48,7 @@ Tools:
 12 - Set custom RUN.bat (auto close and absolute path)
 
 Common case:
-13 - Download Genesys_SIP_Phone.zip
+13 - [Out of service] Download Genesys_SIP_Phone.zip
 14 - Basic Genesys installation: 2, 3, 4, 10, 12
 15 - Disable firewall
 $separator
@@ -337,9 +337,9 @@ function Case {
     } elseif ($action -eq "12") {
         HandleAutoclosingRunBat
     } elseif ($action -eq "13") {
-        specifyDownloadDomain
-        Invoke-WebRequest -Uri ('https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip') -OutFile "C:\Genesys_SIP_Phone.zip"
-        WHR "[Success] download archive" "[Failure] download archive"
+        # specifyDownloadDomain
+        # Invoke-WebRequest -Uri ('https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip') -OutFile "C:\Genesys_SIP_Phone.zip"
+        # WHR "[Success] download archive" "[Failure] download archive"
     } elseif ($action -eq "14") {
         HandleExpanding
         RemoveArchive
