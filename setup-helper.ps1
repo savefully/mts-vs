@@ -1,6 +1,7 @@
 [console]::InputEncoding = [System.Text.Encoding]::UTF8
 [console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+$downloadDomain = $null
 $iconFile = 'app_yellow.ico';
 $archivePath = 'C:\Genesys SIP Phone.zip'
 $archivePathCC = 'C:\Genesys_SIP_Phone.zip'
@@ -11,7 +12,6 @@ $NetFx3Path = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5"
 $kvpncguiPath = 'C:\Program Files (x86)\Kerio\VPN Client\kvpncgui.exe'
 $cryptoKeysPath = 'C:\ProgramData\Application Data\Microsoft\Crypto\Keys'
 $citrixSelfServicePath = 'C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe'
-$downloadDomain = $null
 $customRunBatCode = @"
 @echo off
 if exist "GenesysSIPPhone.exe" (
@@ -63,7 +63,7 @@ function Translit {
         @('й', 'y'), @('к', 'k'), @('л', 'l'), @('м', 'm'), @('н', 'n'),
         @('о', 'o'), @('п', 'p'), @('р', 'r'), @('с', 's'), @('т', 't'),
         @('у', 'u'), @('ф', 'f'), @('х', 'kh'), @('ц', 'ts'), @('ч', 'ch'),
-        @('ш', 'sh'), @('щ', 'shch'), @('ъ', ''), @('ы', 'y'), @('ь', ''),
+        @('ш', 'sh'), @('щ', 'shch'), @('ъ', "'"), @('ы', 'y'), @('ь', "'"),
         @('э', 'e'), @('ю', 'yu'), @('я', 'ya'),
         
         @('А', 'A'), @('Б', 'B'), @('В', 'V'), @('Г', 'G'), @('Д', 'D'),
@@ -71,7 +71,7 @@ function Translit {
         @('Й', 'Y'), @('К', 'K'), @('Л', 'L'), @('М', 'M'), @('Н', 'N'),
         @('О', 'O'), @('П', 'P'), @('Р', 'R'), @('С', 'S'), @('Т', 'T'),
         @('У', 'U'), @('Ф', 'F'), @('Х', 'Kh'), @('Ц', 'Ts'), @('Ч', 'Ch'),
-        @('Ш', 'Sh'), @('Щ', 'Shch'), @('Ъ', ''), @('Ы', 'Y'), @('Ь', ''),
+        @('Ш', 'Sh'), @('Щ', 'Shch'), @('Ъ', "'"), @('Ы', 'Y'), @('Ь', "'"),
         @('Э', 'E'), @('Ю', 'Yu'), @('Я', 'Ya')
     )
     $result = $InputString
@@ -294,6 +294,14 @@ function HandleExpanding {
     Expand-Archive -Path $path -DestinationPath "C:\Users\Public\Downloads" -Force -ErrorAction Stop
     WH "Archive expanded: C:\Users\Public\Downloads"
 }
+function RemoveArchive {
+    if (Test-Path $archivePath) {
+        Remove-Item -Path $archivePath
+    }
+    if (Test-Path $archivePathCC) {
+        Remove-Item -Path $archivePathCC
+    }
+}
 function Case {    
     Write-Host $menuString
     $action = Read-Host ":"
@@ -304,7 +312,7 @@ function Case {
     } elseif ($action -eq "2") {
         HandleExpanding
     } elseif ($action -eq "3") {
-        Remove-Item -Path $archivePath
+        RemoveArchive
         WH "$archivePath removed."
     } elseif ($action -eq "4") {
         CreateShortcut
@@ -334,7 +342,7 @@ function Case {
         WHR "[Success] download archive" "[Failure] download archive"
     } elseif ($action -eq "14") {
         HandleExpanding
-        Remove-Item -Path $archivePath
+        RemoveArchive
         WH "$archivePath removed."
         CreateShortcut
         Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
