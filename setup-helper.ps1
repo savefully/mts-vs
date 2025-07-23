@@ -11,6 +11,7 @@ $NetFx3Path = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5"
 $kvpncguiPath = 'C:\Program Files (x86)\Kerio\VPN Client\kvpncgui.exe'
 $cryptoKeysPath = 'C:\ProgramData\Application Data\Microsoft\Crypto\Keys'
 $citrixSelfServicePath = 'C:\Program Files (x86)\Citrix\ICA Client\SelfServicePlugin\SelfService.exe'
+$downloadDomain = $null
 $customRunBatCode = @"
 @echo off
 if exist "GenesysSIPPhone.exe" (
@@ -37,7 +38,9 @@ ComponentActivator fixes:
 
 NetFx3 installation:
 8 - Policy + gpupdate + restart wuauserv
-9 - Install from WU (5.9%-pause is ok)
+9 - Install from WU (progress is not live, 10-15 minutes)
+--- run in a separate terminal to see the progress 
+--- "dism /online /enable-feature /featurename:NetFX3"    
 
 Tools:
 10 - Set firewall rules for GenesysSIPPhone.exe
@@ -45,33 +48,66 @@ Tools:
 12 - Set custom RUN.bat (auto close and absolute path)
 
 Common case:
-13 - Download https://soft.contact-centre.ru/Genesys_SIP_Phone.zip
+13 - Download Genesys_SIP_Phone.zip
 14 - Basic Genesys installation: 2, 3, 4, 10, 12
 15 - Disable firewall
-
-16 - Install Kerio-msi from C:\
-17 - Install Citrix-exe from C:\
-
 $separator
 Input:
 "@
+function Translit {
+    [CmdletBinding()]
+    param([string]$InputString)
+    $translitMap = @(
+        @('а', 'a'), @('б', 'b'), @('в', 'v'), @('г', 'g'), @('д', 'd'),
+        @('е', 'e'), @('ё', 'yo'), @('ж', 'zh'), @('з', 'z'), @('и', 'i'),
+        @('й', 'y'), @('к', 'k'), @('л', 'l'), @('м', 'm'), @('н', 'n'),
+        @('о', 'o'), @('п', 'p'), @('р', 'r'), @('с', 's'), @('т', 't'),
+        @('у', 'u'), @('ф', 'f'), @('х', 'kh'), @('ц', 'ts'), @('ч', 'ch'),
+        @('ш', 'sh'), @('щ', 'shch'), @('ъ', ''), @('ы', 'y'), @('ь', ''),
+        @('э', 'e'), @('ю', 'yu'), @('я', 'ya'),
+        
+        @('А', 'A'), @('Б', 'B'), @('В', 'V'), @('Г', 'G'), @('Д', 'D'),
+        @('Е', 'E'), @('Ё', 'Yo'), @('Ж', 'Zh'), @('З', 'Z'), @('И', 'I'),
+        @('Й', 'Y'), @('К', 'K'), @('Л', 'L'), @('М', 'M'), @('Н', 'N'),
+        @('О', 'O'), @('П', 'P'), @('Р', 'R'), @('С', 'S'), @('Т', 'T'),
+        @('У', 'U'), @('Ф', 'F'), @('Х', 'Kh'), @('Ц', 'Ts'), @('Ч', 'Ch'),
+        @('Ш', 'Sh'), @('Щ', 'Shch'), @('Ъ', ''), @('Ы', 'Y'), @('Ь', ''),
+        @('Э', 'E'), @('Ю', 'Yu'), @('Я', 'Ya')
+    )
+    $result = $InputString
+    foreach ($pair in $translitMap) {
+        $russianChar = $pair[0]
+        $latinChar = $pair[1]
+        $result = $result -replace $russianChar, $latinChar
+    }
+    return $result
+}
 function WH {
     param( $item )
     Write-Host $separator
+    $result = Translit $item
     Write-Host $item
+}
+function WHR {
+    param($a, $b)
+    if($?) { WH $a } 
+    else { WH $b }
 }
 function RunCmd {
     param([string]$Command)
     $output = & cmd /c "chcp 65001>nul & $Command 2>&1"
     $output | ForEach-Object { 
-        Write-Host $_
+        Translit $_ | Write-Host 
     }
     return $LASTEXITCODE
 }
+function specifyDownloadDomain {
+    if ($global:downloadDomain) { return }
+    WH 'Input domain: https://soft.?.ru'
+    $global:downloadDomain = Read-Host ":"
+}
 function ChoosePathByRegex {
-    param (
-        $regex
-    )
+    param ($regex)
     $filenames = Get-ChildItem -Path "C:\" -Filter $regex | Select-Object -ExpandProperty Name
     if ($filenames.Count -eq 0) {
         throw "There are no `"$regex`" installers on C:\"
@@ -84,7 +120,7 @@ function ChoosePathByRegex {
     }
     WH "$menu"
     WH "Input:"
-    $choice = Read-Host "-"
+    $choice = Read-Host ":"
     if ($choice -eq '0') {
         return 'exit'
     }
@@ -92,9 +128,7 @@ function ChoosePathByRegex {
     return $filenames[$choice-1]
 }
 function InstallMSI {
-    param (
-        $msiPath
-    )
+    param ($msiPath)
     $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i", $msiPath, "/quiet" -Wait -PassThru
     if ($process.ExitCode -eq 0) {
         WH 'Installation: success.'
@@ -120,7 +154,7 @@ function CreateShortcut {
 }
 function Set6signNumber {
     Write-Host "6-sign number: "
-    $sixSignNumber = Read-Host "-"
+    $sixSignNumber = Read-Host ":"
     [xml]$phoneConfig = Get-Content -Path "$gspPath\Config\genesys_phoneConfig.xml"
     $phoneConfig.configuration['sip-endpoint'].user.setAttribute('name', $sixSignNumber);
     $phoneConfig.Save("$gspPath\Config\genesys_phoneConfig.xml")
@@ -137,8 +171,11 @@ function SetUpdatePolicy {
     }
     Set-ItemProperty -Path $ServicingPath -Name "RepairContentServerSource" -Value 2
     RunCmd "gpupdate /force"
-    Stop-Service wuauserv -Force
-    Start-Service wuauserv
+    Stop-Service wuauserv -Force > $null
+    WHR "[Success] stop wuauserv" "[Failure] stop wuauserv"
+    Start-Service wuauserv > $null
+    WHR "[Success] start wuauserv" "[Failure] start wuauserv"
+
 }
 function SetFirewallRules {
     $programPath = "$gspPath\GenesysSIPPhone.exe"
@@ -176,21 +213,17 @@ function SetFirewallRules {
     }
 }
 function SetFullControlForAll {
-    param(
-        $folderPath
-    )
+    param($folderPath)
     $acl = Get-Acl $folderPath
     $accessRuleRu = New-Object System.Security.AccessControl.FileSystemAccessRule("Все", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
     $accessRuleEng = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
     try { $acl.SetAccessRule($accessRuleRu) }
     catch { $acl.SetAccessRule($accessRuleEng) }
-    Set-Acl -Path $folderPath -AclObject $acl
-    WH "Full control for group 'All': $folderPath"
+    Set-Acl -Path $folderPath -AclObject $acl -ErrorAction Stop
+    WH "Full control for group 'All': $folderPath" 
 }
 function AddKerioConnection {
-    param (
-        $server
-    )
+    param($server)
     $usercfgPath = "$env:APPDATA\Kerio\VpnClient\user.cfg"
     $usercfg = Get-Content -Path $usercfgPath
     [xml]$usercfgXML = Get-Content -Path $usercfgPath
@@ -215,8 +248,7 @@ function AddKerioConnection {
     Set-Content -Path $usercfgPath -value $injectedcfg
     WH "Added connection: $server"
 }
-
-function Precheck {
+function CheckNetFx3 {
     if (Test-Path $NetFx3Path) {
         $install = Get-ItemProperty -Path $NetFx3Path -Name Install
         if ($install.Install -eq 1) {
@@ -227,7 +259,9 @@ function Precheck {
     } else {
         Write-Host "`nNetFx3 registry key is not found"
     }
-
+}
+function Precheck {
+    CheckNetFx3
     $version = "Not Found"
     if (Test-Path $citrixSelfServicePath) {
         $version = (Get-Item $citrixSelfServicePath).VersionInfo.ProductVersion
@@ -257,12 +291,12 @@ function HandleExpanding {
             throw "Archive is not found."
         }
     }
-    Expand-Archive -Path $path -DestinationPath "C:\Users\Public\Downloads" -Force
+    Expand-Archive -Path $path -DestinationPath "C:\Users\Public\Downloads" -Force -ErrorAction Stop
     WH "Archive expanded: C:\Users\Public\Downloads"
 }
 function Case {    
     Write-Host $menuString
-    $action = Read-Host "-"
+    $action = Read-Host ":"
     if ($action -eq "0") {
         return 'exit';
     } elseif ($action -eq "1") {
@@ -286,6 +320,8 @@ function Case {
         SetUpdatePolicy
     } elseif ($action -eq "9") {
         RunCmd "dism.exe /online /enable-feature /featurename:NetFX3"
+        CheckNetFx3
+        # Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All
     } elseif ($action -eq "10") {
         SetFirewallRules
     } elseif ($action -eq "11") {
@@ -293,7 +329,9 @@ function Case {
     } elseif ($action -eq "12") {
         HandleAutoclosingRunBat
     } elseif ($action -eq "13") {
-        RunCmd 'curl --output "C:\Genesys_SIP_Phone.zip" https://soft.contact-centre.ru/Genesys_SIP_Phone.zip'
+        specifyDownloadDomain
+        Invoke-WebRequest -Uri ('https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip') -OutFile "C:\Genesys_SIP_Phone.zip"
+        WHR "[Success] download archive" "[Failure] download archive"
     } elseif ($action -eq "14") {
         HandleExpanding
         Remove-Item -Path $archivePath
@@ -307,22 +345,20 @@ function Case {
         Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
         WH "Firewall is disabled."
     } elseif ($action -eq "16") {
-        $filename = ChoosePathByRegex "*kerio*.msi"
-        if ($filename -eq 'exit') {
-            return $null
-        }
-        InstallMSI "C:\$filename"
+        # $filename = ChoosePathByRegex "*kerio*.msi"
+        # if ($filename -eq 'exit') { return }
+        # InstallMSI "C:\$filename"
     } elseif ($action -eq "17") {
-        $filename = ChoosePathByRegex "*citrix*.exe"
-        if ($filename -eq 'exit') {
-            return $null
-        }
-        $process = Start-Process -FilePath "C:\$filename" -ArgumentList "/silent /noreboot /forceinstall /AutoUpdateCheck=disabled /EnableCEIP=false" -Wait -NoNewWindow
-        if ($process.ExitCode -eq 0) {
-            WH 'Installation: success.'
-        } else {
-            WH "Installation: error. Exit code: $($process.ExitCode)"
-        }
+        # $filename = ChoosePathByRegex "*citrix*.exe"
+        # if ($filename -eq 'exit') {
+        #     return $null
+        # }
+        # $process = Start-Process -FilePath "C:\$filename" -ArgumentList "/silent /noreboot /forceinstall /AutoUpdateCheck=disabled /EnableCEIP=false" -Wait -NoNewWindow -PassThru
+        # if ($process.ExitCode -eq 0) {
+        #     WH 'Installation: success.'
+        # } else {
+        #     WH "Installation: error. Exit code: $($process.ExitCode)"
+        # }
     } 
 }
 function Attempt {
