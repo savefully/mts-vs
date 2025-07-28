@@ -82,11 +82,37 @@ function Translit {
     }
     return $result
 }
+function FindUserFiles {
+    param (
+    $Regex,
+    $Paths = 'Downloads;Downloads\Telegram Desktop'
+    )
+    $results = @()
+    $Paths = $Paths -split ';'
+    $users = Get-ChildItem -Path 'C:\Users' -Directory | Where-Object {
+        Test-Path "$($_.FullName)\Downloads"
+    }
+    foreach ($user in $users) {
+        foreach ($path in $Paths) {
+            $absolutePath = "$($user.FullName)\$path"
+            Get-ChildItem -Path $absolutePath -ErrorAction SilentlyContinue | Where-Object {
+                $_.Name -match $Regex
+            } | ForEach-Object {
+                $results += $_.FullName
+            }
+        }
+    }
+    $results = $results -join "`n"
+    Write-Host "`nRegex: $Regex"
+    Write-Host "`nPaths: $Paths"
+    Write-Host "`nResults:`n"
+    Write-Host $results
+}
 function WH {
     param( $item )
     Write-Host $separator
     $result = Translit $item
-    Write-Host $item
+    Write-Host $result
 }
 function WHR {
     param($a, $b)
@@ -103,7 +129,7 @@ function RunCmd {
 }
 function specifyDownloadDomain {
     if ($global:downloadDomain) { return }
-    WH 'Input domain: https://soft.?.ru'
+    WH 'Input domain: soft.?.ru'
     $global:downloadDomain = Read-Host ":"
 }
 function ChoosePathByRegex {
@@ -260,19 +286,41 @@ function CheckNetFx3 {
         Write-Host "`nNetFx3 registry key is not found"
     }
 }
+function WriteHostIfPathExist {
+    param($path)
+    if (Test-Path $path) {
+        Write-Host $path
+    }
+}
 function Precheck {
     CheckNetFx3
+    
+
+    # citrix version 
     $version = "Not Found"
     if (Test-Path $citrixSelfServicePath) {
         $version = (Get-Item $citrixSelfServicePath).VersionInfo.ProductVersion
     }
     Write-Host "Citrix file version: $version"
+    
 
+    # kerio version
     $version = "Not Found"
     if (Test-Path $kvpncguiPath) {
         $version = (Get-Item $kvpncguiPath).VersionInfo.ProductVersion
     }
     Write-Host "Kerio file version: $version"
+
+
+    FindUserFiles "citrix"
+    FindUserFiles "kerio"
+    FindUserFiles "genesys"
+    FindUserFiles "run.bat"
+
+
+    WriteHostIfPathExist "C:\Genesys SIP Phone"
+    WriteHostIfPathExist "C:\Genesys SIP Phone.zip"
+    WriteHostIfPathExist "C:\Genesys_SIP_Phone.zip"
 }
 function CheckIfGenesysAlreadyInstalledByThisScript {
     if (Test-Path $gspPath) {
@@ -313,7 +361,7 @@ function Case {
         HandleExpanding
     } elseif ($action -eq "3") {
         RemoveArchive
-        WH "$archivePath removed."
+        WH "Archive removed."
     } elseif ($action -eq "4") {
         CreateShortcut
         Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
@@ -343,7 +391,7 @@ function Case {
     } elseif ($action -eq "14") {
         HandleExpanding
         RemoveArchive
-        WH "$archivePath removed."
+        WH "Archive removed."
         CreateShortcut
         Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
         WH "Shortcut created: C:\Users\Public\Desktop"
