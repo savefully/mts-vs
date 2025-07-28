@@ -103,12 +103,13 @@ function FindUserFiles {
         }
     }
     $results = $results -join "`n"
-    if ($results.Count -ne 0) {
-        Write-Host "Regex: $Regex"
-        # Write-Host "`nPaths: $Paths"
-        Write-Host "Results:`n"
-        WHT $results
+    if ($results.Count -eq 0) {
+        $results = 'none'
     }
+    Write-Host "`nRegex: $Regex"
+    # Write-Host "`nPaths: $Paths"
+    Write-Host "Results:"
+    WHT $results
 }
 function WH {
     param( $item )
@@ -117,7 +118,7 @@ function WH {
 }
 function WHT {
     param( $item )
-    Write-Host $separator
+    # Write-Host $separator
     $result = Translit $item
     Write-Host $result
 }
@@ -324,7 +325,7 @@ function Precheck {
     FindUserFiles "genesys"
     FindUserFiles "run.bat"
 
-
+    Write-Host 'Genesys SIP Phone on C:\'
     WriteHostIfPathExist "C:\Genesys SIP Phone"
     WriteHostIfPathExist "C:\Genesys SIP Phone.zip"
     WriteHostIfPathExist "C:\Genesys_SIP_Phone.zip"
