@@ -1,6 +1,7 @@
 [console]::InputEncoding = [System.Text.Encoding]::UTF8
 [console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+$foundPaths = @()
 $downloadDomain = $null
 $iconFile = 'app_yellow.ico';
 $archivePath = 'C:\Genesys SIP Phone.zip'
@@ -24,33 +25,33 @@ exit
 $separator = '----------------------------------------------------------------------------------------------------'
 $menuString = @"
 $separator
-0 - Exit
+  0 - Exit
+0.1 - Precheck (NetFx3 state; Kerio and Citrix versions, paths)
 
-1 - Precheck (NetFx3 state; Kerio and Citrix versions)
-2 - Expand Genesys archive
-3 - Remove Genesys archive
-4 - Create shortcut: $shortcutPath
-5 - Set 6-sign number
-
+Genesys SIP Phone installation:
+  1 - Basic installation: 1.1...1.5
+1.1 - Expand archive
+1.2 - Remove archive
+1.3 - Create shortcuts
+1.4 - Set firewall rules for GenesysSIPPhone.exe
+1.5 - Set custom RUN.bat (auto close and absolute path)
+1.6 - Set 6-sign number
 ComponentActivator fixes:
-6 - $machineKeysPath 
-7 - $cryptoKeysPath
+1.7 - $machineKeysPath 
+1.8 - $cryptoKeysPath
 
-NetFx3 installation:
-8 - Policy + gpupdate + restart wuauserv
-9 - Install from WU (progress is not live, 10-15 minutes)
---- run in a separate terminal to see the progress 
---- "dism /online /enable-feature /featurename:NetFX3"    
+.NET 3.5 installation:
+2.1 - Policy + gpupdate + restart wuauserv
+2.2 - Install from WU (progress is not live, 10-15 minutes)
+- - - run in a separate terminal to see the progress 
+- - - "dism /online /enable-feature /featurename:NetFx3"    
 
 Tools:
-10 - Set firewall rules for GenesysSIPPhone.exe
-11 - Add kerio .104 connection (reconnect 1st connection in kerio before it)
-12 - Set custom RUN.bat (auto close and absolute path)
+8.1 - Remove paths - input paths separated by ";" (not "; ")
 
-Common case:
-13 - [Out of service] Download Genesys_SIP_Phone.zip
-14 - Basic Genesys installation: 2, 3, 4, 10, 12
-15 - Disable firewall
+Sundry:
+9.1 - Disable firewall
+9.2 - Add kerio .104 connection (reconnect 1st connection in kerio before it)
 $separator
 Input:
 "@
@@ -82,10 +83,18 @@ function Translit {
     }
     return $result
 }
+function RemovePaths {
+    Write-Host '[DELETION] Input paths separated by ";":'
+    $paths = Read-Host ":"
+    $paths = $paths -split ';'
+    foreach ($path in $paths) {
+        Remove-Item -Path $path -Force -Confirm:$false -ErrorAction Stop
+    }
+}
 function FindUserFiles {
     param (
     $Regex,
-    $Paths = 'Downloads;Downloads\Telegram Desktop'
+    $Paths = 'Desktop;Documents;Downloads;Downloads\Telegram Desktop'
     )
     $results = @()
     $Paths = $Paths -split ';'
@@ -102,13 +111,14 @@ function FindUserFiles {
             }
         }
     }
-    $results = $results -join "`n"
     if ($results.Count -eq 0) {
         $results = 'none'
+    } else {
+        $results = $results -join "`n"
     }
     Write-Host "`nRegex: $Regex"
     # Write-Host "`nPaths: $Paths"
-    Write-Host "Results:"
+    Write-Host "Found:"
     WHT $results
 }
 function WH {
@@ -297,7 +307,7 @@ function CheckNetFx3 {
 function WriteHostIfPathExist {
     param($path)
     if (Test-Path $path) {
-        Write-Host $path
+        Write-Host "Found: $path"
     }
 }
 function Precheck {
@@ -325,17 +335,17 @@ function Precheck {
     FindUserFiles "genesys"
     FindUserFiles "run.bat"
 
-    Write-Host 'Genesys SIP Phone on C:\'
+    Write-Host $separator
     WriteHostIfPathExist "C:\Genesys SIP Phone"
     WriteHostIfPathExist "C:\Genesys SIP Phone.zip"
     WriteHostIfPathExist "C:\Genesys_SIP_Phone.zip"
 }
 function CheckIfGenesysAlreadyInstalledByThisScript {
     if (Test-Path $gspPath) {
-        WH "ALREADY EXISTS: $gspPath"
+        WH "Already exists: $gspPath"
     }
     if (Test-Path $shortcutPath) {
-        WH "ALREADY EXISTS: $shortcutPath"
+        WH "Already exists: $shortcutPath"
     }
 }
 function HandleExpanding {
@@ -363,40 +373,40 @@ function Case {
     $action = Read-Host ":"
     if ($action -eq "0") {
         return 'exit';
-    } elseif ($action -eq "1") {
+    } elseif ($action -eq "0.1") {
         Precheck
-    } elseif ($action -eq "2") {
+    } elseif ($action -eq "1.1") {
         HandleExpanding
-    } elseif ($action -eq "3") {
+    } elseif ($action -eq "1.2") {
         RemoveArchive
         WH "Archive removed."
-    } elseif ($action -eq "4") {
+    } elseif ($action -eq "1.3") {
         CreateShortcut
         Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
         WH "Shortcut created: C:\Users\Public\Desktop"
-    } elseif ($action -eq "5") {
+    } elseif ($action -eq "1.6") {
         Set6signNumber
-    } elseif ($action -eq "6") {
+    } elseif ($action -eq "1.7") {
         SetFullControlForAll $machineKeysPath
-    } elseif ($action -eq "7") {
+    } elseif ($action -eq "1.8") {
         SetFullControlForAll $cryptoKeysPath
-    } elseif ($action -eq "8") {
+    } elseif ($action -eq "2.1") {
         SetUpdatePolicy
-    } elseif ($action -eq "9") {
+    } elseif ($action -eq "2.2") {
         RunCmd "dism.exe /online /enable-feature /featurename:NetFX3"
         CheckNetFx3
         # Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All
-    } elseif ($action -eq "10") {
+    } elseif ($action -eq "1.4") {
         SetFirewallRules
-    } elseif ($action -eq "11") {
+    } elseif ($action -eq "9.2") {
         AddKerioConnection '194.0.162.104'
-    } elseif ($action -eq "12") {
+    } elseif ($action -eq "1.5") {
         HandleAutoclosingRunBat
-    } elseif ($action -eq "13") {
+    # } elseif ($action -eq "13") {
         # specifyDownloadDomain
         # Invoke-WebRequest -Uri ('https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip') -OutFile "C:\Genesys_SIP_Phone.zip"
         # WHR "[Success] download archive" "[Failure] download archive"
-    } elseif ($action -eq "14") {
+    } elseif ($action -eq "1") {
         HandleExpanding
         RemoveArchive
         WH "Archive removed."
@@ -405,14 +415,16 @@ function Case {
         WH "Shortcut created: C:\Users\Public\Desktop"
         SetFirewallRules
         HandleAutoclosingRunBat
-    } elseif ($action -eq "15") {
+    } elseif ($action -eq "9.1") {
         Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
         WH "Firewall is disabled."
-    } elseif ($action -eq "16") {
+    } elseif ($action -eq "8.1") {
+        RemovePaths
+    # } elseif ($action -eq "16") {
         # $filename = ChoosePathByRegex "*kerio*.msi"
         # if ($filename -eq 'exit') { return }
         # InstallMSI "C:\$filename"
-    } elseif ($action -eq "17") {
+    # } elseif ($action -eq "17") {
         # $filename = ChoosePathByRegex "*citrix*.exe"
         # if ($filename -eq 'exit') {
         #     return $null
@@ -423,12 +435,16 @@ function Case {
         # } else {
         #     WH "Installation: error. Exit code: $($process.ExitCode)"
         # }
-    } 
+    }
+    pause
 }
 function Attempt {
     param([ScriptBlock]$Callback)
     $result = $null;
-    try { $result = $Callback.Invoke() }
+    try {
+        # $ErrorActionPreference = 'Stop'
+        $result = $Callback.Invoke() 
+    }
     catch { Write-Error $_ }
     return $result;
 }
