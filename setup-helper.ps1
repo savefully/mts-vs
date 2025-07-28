@@ -103,16 +103,23 @@ function FindUserFiles {
         }
     }
     $results = $results -join "`n"
-    Write-Host "`nRegex: $Regex"
-    Write-Host "`nPaths: $Paths"
-    Write-Host "`nResults:`n"
-    Write-Host $results
+    if ($results.Count -ne 0) {
+        Write-Host "Regex: $Regex"
+        # Write-Host "`nPaths: $Paths"
+        Write-Host "Results:`n"
+        WHT $results
+    }
 }
 function WH {
     param( $item )
     Write-Host $separator
-    # $result = Translit $item
     Write-Host $item
+}
+function WHT {
+    param( $item )
+    Write-Host $separator
+    $result = Translit $item
+    Write-Host $result
 }
 function WHR {
     param($a, $b)
@@ -424,7 +431,7 @@ function Attempt {
     catch { Write-Error $_ }
     return $result;
 }
-Write-Host "`n==== MTC BC setup-helper ===="
+Write-Host "`n==== MTC BC setup-helper ====`n[russian letters are given in transliteration]"
 Precheck
 CheckIfGenesysAlreadyInstalledByThisScript
 $caseResult = $null
