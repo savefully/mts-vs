@@ -111,8 +111,8 @@ function FindUserFiles {
 function WH {
     param( $item )
     Write-Host $separator
-    $result = Translit $item
-    Write-Host $result
+    # $result = Translit $item
+    Write-Host $item
 }
 function WHR {
     param($a, $b)
