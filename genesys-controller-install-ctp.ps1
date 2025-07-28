@@ -94,7 +94,7 @@ function HandleCTP {
     if ( -not (Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Genesys Telecommunications Laboratories\Workspace Desktop Edition\Call_To_Phone.appref-ms") ) {
         Write-Host '[x] Call_To_Phone is not installed. Downloading...'
         $ctpUrl = 'http://w0001-wfm07.msk.mts.ru/InteractionWorkspace/Call_To_Phone.application'
-        $ctpOutfile = 'P:\Downloads\Call_To_Phone.application'
+        $ctpOutfile = "$env:TEMP\Call_To_Phone.application"
         Invoke-WebRequest -Uri $ctpUrl -OutFile $ctpOutfile
         if (Test-Path $ctpOutfile) {
             Write-Host 'Start Call_To_Phone...'
