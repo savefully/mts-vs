@@ -1,7 +1,6 @@
 [console]::InputEncoding = [System.Text.Encoding]::UTF8
 [console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$foundPaths = @()
 $downloadDomain = $null
 $iconFile = 'app_yellow.ico';
 $archivePath = 'C:\Genesys SIP Phone.zip'
@@ -48,6 +47,7 @@ ComponentActivator fixes:
 
 Tools:
 8.1 - Remove paths - input paths separated by ";" (not "; ")
+8.2 - Start process as admin - input path
 
 Sundry:
 9.1 - Disable firewall
@@ -58,7 +58,7 @@ Input:
 function Translit {
     [CmdletBinding()]
     param([string]$InputString)
-    $translitMap = @(
+    $map = @(
         @('а', 'a'), @('б', 'b'), @('в', 'v'), @('г', 'g'), @('д', 'd'),
         @('е', 'e'), @('ё', 'yo'), @('ж', 'zh'), @('з', 'z'), @('и', 'i'),
         @('й', 'y'), @('к', 'k'), @('л', 'l'), @('м', 'm'), @('н', 'n'),
@@ -76,7 +76,7 @@ function Translit {
         @('Э', 'E'), @('Ю', 'Yu'), @('Я', 'Ya')
     )
     $result = $InputString
-    foreach ($pair in $translitMap) {
+    foreach ($pair in $map) {
         $russianChar = $pair[0]
         $latinChar = $pair[1]
         $result = $result -replace $russianChar, $latinChar
@@ -90,6 +90,11 @@ function RemovePaths {
     foreach ($path in $paths) {
         Remove-Item -Path $path -Force -Confirm:$false -ErrorAction Stop
     }
+}
+function StartProcessAsAdmin {
+    Write-Host "Input file path to start:"
+    $FilePath = Read-Host ':'
+    Start-Process -FilePath $FilePath -Verb RunAs
 }
 function FindUserFiles {
     param (
@@ -116,7 +121,8 @@ function FindUserFiles {
     } else {
         $results = $results -join "`n"
     }
-    Write-Host "`nRegex: $Regex"
+    Write-Host $separator
+    Write-Host "Regex: $Regex"
     # Write-Host "`nPaths: $Paths"
     Write-Host "Found:"
     WHT $results
@@ -199,7 +205,7 @@ function CreateShortcut {
 function Set6signNumber {
     Write-Host "6-sign number: "
     $sixSignNumber = Read-Host ":"
-    [xml]$phoneConfig = Get-Content -Path "$gspPath\Config\genesys_phoneConfig.xml"
+    [xml]$phoneConfig = Get-Content -Path "$gspPath\Config\genesys_phoneConfig.xml" -ErrorAction Stop
     $phoneConfig.configuration['sip-endpoint'].user.setAttribute('name', $sixSignNumber);
     $phoneConfig.Save("$gspPath\Config\genesys_phoneConfig.xml")
     WH "Number $sixSignNumber set in genesys_phoneConfig.xml"
@@ -269,8 +275,8 @@ function SetFullControlForAll {
 function AddKerioConnection {
     param($server)
     $usercfgPath = "$env:APPDATA\Kerio\VpnClient\user.cfg"
-    $usercfg = Get-Content -Path $usercfgPath
-    [xml]$usercfgXML = Get-Content -Path $usercfgPath
+    $usercfg = Get-Content -Path $usercfgPath -ErrorAction Stop
+    [xml]$usercfgXML = Get-Content -Path $usercfgPath -ErrorAction Stop
     $connection = $usercfgXML.config.connections.connection;
     if ($connection[0] -ne $null) {
       $connection = $connection[0]
@@ -362,19 +368,29 @@ function HandleExpanding {
 }
 function RemoveArchive {
     if (Test-Path $archivePath) {
-        Remove-Item -Path $archivePath
+        Remove-Item -Path $archivePath -ErrorAction Stop
     }
     if (Test-Path $archivePathCC) {
-        Remove-Item -Path $archivePathCC
+        Remove-Item -Path $archivePathCC -ErrorAction Stop
     }
 }
-function Case {    
+function Case {
+    $ErrorActionPreference = 'Stop'
     Write-Host $menuString
     $action = Read-Host ":"
     if ($action -eq "0") {
         return 'exit';
     } elseif ($action -eq "0.1") {
         Precheck
+    } elseif ($action -eq "1") {
+        HandleExpanding
+        RemoveArchive
+        WH "Archive removed."
+        CreateShortcut
+        Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
+        WH "Shortcut created: C:\Users\Public\Desktop"
+        SetFirewallRules
+        HandleAutoclosingRunBat
     } elseif ($action -eq "1.1") {
         HandleExpanding
     } elseif ($action -eq "1.2") {
@@ -384,6 +400,10 @@ function Case {
         CreateShortcut
         Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
         WH "Shortcut created: C:\Users\Public\Desktop"
+    } elseif ($action -eq "1.4") {
+        SetFirewallRules
+    } elseif ($action -eq "1.5") {
+        HandleAutoclosingRunBat
     } elseif ($action -eq "1.6") {
         Set6signNumber
     } elseif ($action -eq "1.7") {
@@ -395,31 +415,19 @@ function Case {
     } elseif ($action -eq "2.2") {
         RunCmd "dism.exe /online /enable-feature /featurename:NetFX3"
         CheckNetFx3
-        # Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All
-    } elseif ($action -eq "1.4") {
-        SetFirewallRules
+    } elseif ($action -eq "8.1") {
+        RemovePaths
+    } elseif ($action -eq "8.2") {
+        StartProcessAsAdmin
+    } elseif ($action -eq "9.1") {
+        Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+        WH "Firewall is disabled."
     } elseif ($action -eq "9.2") {
         AddKerioConnection '194.0.162.104'
-    } elseif ($action -eq "1.5") {
-        HandleAutoclosingRunBat
     # } elseif ($action -eq "13") {
         # specifyDownloadDomain
         # Invoke-WebRequest -Uri ('https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip') -OutFile "C:\Genesys_SIP_Phone.zip"
         # WHR "[Success] download archive" "[Failure] download archive"
-    } elseif ($action -eq "1") {
-        HandleExpanding
-        RemoveArchive
-        WH "Archive removed."
-        CreateShortcut
-        Copy-Item -Path "$gspPath\Genesys SIP Phone.lnk" -Destination $shortcutPath
-        WH "Shortcut created: C:\Users\Public\Desktop"
-        SetFirewallRules
-        HandleAutoclosingRunBat
-    } elseif ($action -eq "9.1") {
-        Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
-        WH "Firewall is disabled."
-    } elseif ($action -eq "8.1") {
-        RemovePaths
     # } elseif ($action -eq "16") {
         # $filename = ChoosePathByRegex "*kerio*.msi"
         # if ($filename -eq 'exit') { return }
@@ -442,7 +450,6 @@ function Attempt {
     param([ScriptBlock]$Callback)
     $result = $null;
     try {
-        # $ErrorActionPreference = 'Stop'
         $result = $Callback.Invoke() 
     }
     catch { Write-Error $_ }
