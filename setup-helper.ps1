@@ -43,7 +43,7 @@ ComponentActivator fixes:
 2.1 - Policy + gpupdate + restart wuauserv
 2.2 - Install from WU (progress is not live, 10-15 minutes)
 - - - run in a separate terminal to see the progress 
-- - - "dism /online /enable-feature /featurename:NetFx3"    
+- - - "dism /online /enable-feature /featurename:NetFx3"
 
 Tools:
 8.1 - Remove paths - input paths separated by ";" (not "; ")
@@ -444,7 +444,6 @@ function Case {
         #     WH "Installation: error. Exit code: $($process.ExitCode)"
         # }
     }
-    pause
 }
 function Attempt {
     param([ScriptBlock]$Callback)
