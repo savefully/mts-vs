@@ -45,10 +45,6 @@ ComponentActivator fixes:
 - - - run in a separate terminal to see the progress 
 - - - "dism /online /enable-feature /featurename:NetFx3"
 
-Tools:
-8.1 - Remove paths - input paths separated by ";" (not "; ")
-8.2 - Start process as admin - input path
-
 Sundry:
 9.1 - Disable firewall
 9.2 - Add kerio .104 connection (reconnect 1st connection in kerio before it)
@@ -83,19 +79,19 @@ function Translit {
     }
     return $result
 }
-function RemovePaths {
-    Write-Host '[DELETION] Input paths separated by ";":'
-    $paths = Read-Host ":"
-    $paths = $paths -split ';'
-    foreach ($path in $paths) {
-        Remove-Item -Path $path -Force -Confirm:$false -ErrorAction Stop
-    }
-}
-function StartProcessAsAdmin {
-    Write-Host "Input file path to start:"
-    $FilePath = Read-Host ':'
-    Start-Process -FilePath $FilePath -Verb RunAs
-}
+# function RemovePaths {
+#     Write-Host '[DELETION] Input paths separated by ";":'
+#     $paths = Read-Host ":"
+#     $paths = $paths -split ';'
+#     foreach ($path in $paths) {
+#         Remove-Item -Path $path -Force -Confirm:$false -ErrorAction Stop
+#     }
+# }
+# function StartProcessAsAdmin {
+#     Write-Host "Input file path to start:"
+#     $FilePath = Read-Host ':'
+#     Start-Process -FilePath $FilePath -Verb RunAs
+# }
 function FindUserFiles {
     param (
     $Regex,
@@ -151,11 +147,11 @@ function RunCmd {
     }
     return $LASTEXITCODE
 }
-function specifyDownloadDomain {
-    if ($global:downloadDomain) { return }
-    WH 'Input domain: soft.?.ru'
-    $global:downloadDomain = Read-Host ":"
-}
+# function specifyDownloadDomain {
+#     if ($global:downloadDomain) { return }
+#     WH 'Input domain: soft.?.ru'
+#     $global:downloadDomain = Read-Host ":"
+# }
 function ChoosePathByRegex {
     param ($regex)
     $filenames = Get-ChildItem -Path "C:\" -Filter $regex | Select-Object -ExpandProperty Name
@@ -177,15 +173,15 @@ function ChoosePathByRegex {
     $choice = [int]$choice
     return $filenames[$choice-1]
 }
-function InstallMSI {
-    param ($msiPath)
-    $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i", $msiPath, "/quiet" -Wait -PassThru
-    if ($process.ExitCode -eq 0) {
-        WH 'Installation: success.'
-    } else {
-        WH "Installation: error. Exit code: $($process.ExitCode)"
-    }
-}
+# function InstallMSI {
+#     param ($msiPath)
+#     $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i", $msiPath, "/quiet" -Wait -PassThru
+#     if ($process.ExitCode -eq 0) {
+#         WH 'Installation: success.'
+#     } else {
+#         WH "Installation: error. Exit code: $($process.ExitCode)"
+#     }
+# }
 function HandleAutoclosingRunBat {
     Set-Content -Path "$gspPath\RUN.bat" -Value $customRunBatCode
     WH 'RUN.bat is processed: auto close after launch and absolute path to .exe'
@@ -339,7 +335,7 @@ function Precheck {
     FindUserFiles "citrix"
     FindUserFiles "kerio"
     FindUserFiles "genesys"
-    FindUserFiles "run.bat"
+    FindUserFiles "run"
 
     Write-Host $separator
     WriteHostIfPathExist "C:\Genesys SIP Phone"
@@ -416,9 +412,9 @@ function Case {
         RunCmd "dism.exe /online /enable-feature /featurename:NetFX3"
         CheckNetFx3
     } elseif ($action -eq "8.1") {
-        RemovePaths
+        # RemovePaths
     } elseif ($action -eq "8.2") {
-        StartProcessAsAdmin
+        # StartProcessAsAdmin
     } elseif ($action -eq "9.1") {
         Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
         WH "Firewall is disabled."
