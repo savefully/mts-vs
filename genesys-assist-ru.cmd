@@ -100,6 +100,7 @@ if "%1"=="" (
 		dism.exe /online /enable-feature /featurename:NetFX3
 		goto :loop
 	)
+	echo.
 	echo Нет пункта: %option%.
 	goto :loop
 
@@ -130,6 +131,7 @@ if "%1"=="" (
 	goto :eof
 
 :download_archive
+	echo.
 	if %download_domain%==none (
 		set /p download_domain=Введите домен, который должен стоять вместо * ^> soft.*.ru:
 	)
@@ -138,6 +140,7 @@ if "%1"=="" (
 	goto :eof
 
 :expand_archive
+	echo.
 	if "%archive_path%"=="не найден" (
 		pause
 		color 0c
@@ -159,22 +162,26 @@ if "%1"=="" (
 		goto :eof
 	)
 	:_7zip_
+		echo.
 		echo Выбран: 7-Zip
 		call :safely ^"%_7zip%^" x ^"%archive_path%^" -o^"%public%\Downloads\^" -y
 		echo Архив извлечен
 		goto :eof
 	:winrar_
+		echo.
 		echo Выбран: WinRAR
 		call :safely ^"%winrar%^" x -y ^"%archive_path%^" ^"%public%\Downloads\^"
 		echo Архив извлечен
 		goto :eof
 	:powershell_expanding
+		echo.
 		echo Выбран: Powershell's Expand-Archive method
 		call :safely powershell -ExecutionPolicy Bypass -Command ^"Expand-Archive -Path '%archive_path%' -DestinationPath '%public%\Downloads' -Force -ErrorAction Stop^"
 		echo Архив извлечен
 		goto :eof	
 
 :remove_archive
+	echo.
 	if "%archive_path%"=="не найден" (
 		pause
 		color 0c
@@ -187,6 +194,7 @@ if "%1"=="" (
 	goto :eof
 
 :firewall_rules
+	echo.
 	echo Проверка наличия правила входящих соединений...
 	netsh advfirewall firewall show rule name="Allow In - %exe_path%" 1>nul 2>&1
 	if %errorlevel% neq 0 (
@@ -202,6 +210,7 @@ if "%1"=="" (
 	goto :eof
 
 :runbat
+	echo.
 	(
 		echo @echo off
 		echo cd ^"C:\Users\Public\Downloads\Genesys SIP Phone^"
@@ -211,6 +220,7 @@ if "%1"=="" (
 	goto :eof
 
 :policy
+	echo.
 	call :safely reg add ^"%policies_servicing_path%^" /v RepairContentServerSource /t REG_DWORD /d 2 /f
 	reg delete "%policies_servicing_path%" /v UseWindowsUpdate /f 1>nul 2>&1
 	gpupdate /force
@@ -219,6 +229,7 @@ if "%1"=="" (
 	goto :eof
 	
 :safely
+	echo.
 	%* 1>nul 2>&1
 	if %errorlevel% neq 0 (
 		color 0c
