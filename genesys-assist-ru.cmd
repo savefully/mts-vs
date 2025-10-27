@@ -1,16 +1,16 @@
 @echo off
 chcp 866 >nul
 
-set download_domain=none
-set archive_path=не найден
-set public=C:\Users\Public
-set c_path=C:\Genesys SIP Phone 
-set run_path=%public%\Desktop\RUN.bat
-set _7zip=C:\Program Files\7-Zip\7z.exe
-set winrar=C:\Program Files\WinRAR\WinRAR.exe
-set lnk_path=%public%\Desktop\Genesys SIP Phone.lnk
-set exe_path=%public%\Downloads\Genesys SIP Phone\GenesysSIPPhone.exe
-set policies_servicing_path=HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Servicing
+set "download_domain=none"
+set "archive_path=не найден"
+set "public=C:\Users\Public"
+set "c_path=C:\Genesys SIP Phone" 
+set "run_path=%public%\Desktop\RUN.bat"
+set "_7zip=C:\Program Files\7-Zip\7z.exe"
+set "winrar=C:\Program Files\WinRAR\WinRAR.exe"
+set "lnk_path=%public%\Desktop\Genesys SIP Phone.lnk"
+set "exe_path=%public%\Downloads\Genesys SIP Phone\GenesysSIPPhone.exe"
+set "policies_servicing_path=HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Servicing"
 
 net session 1>nul 2>&1
 if %errorlevel% neq 0 (
@@ -24,7 +24,7 @@ if "%1"=="" (
 	echo [Инфо] Домен скачивания не передан
 ) else (
 	echo Домен скачивания: %1
-	set download_domain=%1
+	set "download_domain=%1"
 )
 
 :loop
@@ -49,8 +49,8 @@ if "%1"=="" (
 	echo 7 - Обновление политики и перезапуск wuauserv
 	echo 8 - Установка через DISM
 	echo.
-	set option=Пусто
-	set /p option=Число:
+	set "option=Пусто"
+	set /p "option=Число:"
 	if %option%==0 (
 		goto :end
 	)
@@ -116,10 +116,10 @@ if "%1"=="" (
 	)
 
 	if exist C:\Genesys_SIP_Phone.zip (
-		set archive_path=C:\Genesys_SIP_Phone.zip
+		set "archive_path=C:\Genesys_SIP_Phone.zip"
 	)
 	if exist "C:\Genesys SIP Phone.zip" (
-		set archive_path=C:\Genesys SIP Phone.zip
+		set "archive_path=C:\Genesys SIP Phone.zip"
 	)
 	echo Архив для извлечния: %archive_path%
 	if exist "%c_path%" (echo Обнаружен: %c_path%)
@@ -130,11 +130,11 @@ if "%1"=="" (
 
 :download_archive
 	echo.
-	if %download_domain%==none (
-		set /p download_domain=Введите домен, который должен стоять вместо * ^> soft.*.ru:
+	if "%download_domain%"=="none" (
+		set /p "download_domain=Введите домен, который должен стоять вместо * ^> soft.*.ru:"
 	)
 	call :safely curl -o ^"C:\Genesys_SIP_Phone.zip^" ^"https://soft.%download_domain%.ru/Genesys_SIP_Phone.zip^" || exit /b 1
-	set archive_path=C:\Genesys_SIP_Phone.zip
+	set "archive_path=C:\Genesys_SIP_Phone.zip"
 	echo Архив скачан
 	goto :eof
 
@@ -206,6 +206,7 @@ if "%1"=="" (
 		color 0F
 	) else (
 		del /q "%archive_path%"
+		echo Архив удален
 	)
 	goto :eof
 
