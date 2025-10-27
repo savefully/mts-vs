@@ -20,6 +20,7 @@ if %errorlevel% neq 0 (
 )
 
 if "%1"=="" (
+	echo.
 	echo [Инфо] Домен скачивания не передан
 ) else (
 	echo Домен скачивания: %1
@@ -29,22 +30,22 @@ if "%1"=="" (
 :loop
 	echo.
 	echo.
-	echo ==== Ассистент установки Genesys SIP Phone ====
+	echo ++++++++ Ассистент установки Genesys SIP Phone ++++++++
 	echo.
 	call :checks
 	echo.
 	echo Введите номер пункта:
 	echo 0 - Выход
 	echo 1 - Установить Genesys SIP Phone (2-6 пункты)
-	echo 2 - Скачать архив
-	echo 3 - Извлечь архив
+	echo 2 = Скачать архив
+	echo 3 = Извлечь архив
 	echo 3.1 -- 7-Zip
 	echo 3.2 -- WinRAR
 	echo 3.3 -- Powershell
 	echo 4 - Удалить архив
 	echo 5 - Внести исключения брандмауэра для GenesysSIPPhone.exe
 	echo 6 - Записать RUN.bat на общий рабочий стол
-	echo === .NET 3.5 ===
+	echo #### .NET 3.5 ####
 	echo 7 - Обновление политики и перезапуск wuauserv
 	echo 8 - Установка через DISM
 	echo.
@@ -54,10 +55,7 @@ if "%1"=="" (
 		goto :end
 	)
 	if %option%==1 (
-		call :expand_archive
-		call :remove_archive
-		call :firewall_rules
-		call :runbat
+		call :download_archive && call :expand_archive && call :remove_archive && call :firewall_rules && call :runbat
 		goto :loop
 	)
 	if %option%==2 (
@@ -135,62 +133,80 @@ if "%1"=="" (
 	if %download_domain%==none (
 		set /p download_domain=Введите домен, который должен стоять вместо * ^> soft.*.ru:
 	)
-	call :safely curl -o "C:\Genesys_SIP_Phone.zip" "https://soft.%download_domain%.ru/Genesys_SIP_Phone.zip"
+	call :safely curl -o ^"C:\Genesys_SIP_Phone.zip^" ^"https://soft.%download_domain%.ru/Genesys_SIP_Phone.zip^" || exit /b 1
+	set archive_path=C:\Genesys_SIP_Phone.zip
 	echo Архив скачан
 	goto :eof
 
 :expand_archive
 	echo.
 	if "%archive_path%"=="не найден" (
-		pause
 		color 0c
 		echo C:\Genesys_SIP_Phone.zip и C:\Genesys SIP Phone.zip не найдены. Нет архива для извлечения.
 		pause
 		color 0F
-		goto :loop
+		exit /b 1
 	)
-	if exist "%_7zip%" (goto :_7zip_)
-	if exist "%winrar%" (goto :winrar_)
+	if exist "%_7zip%" (
+		call :_7zip_
+		if %errorlevel% equ 0 (goto :eof)
+	)
+	if exist "%winrar%" (
+		call :winrar_
+		if %errorlevel% equ 0 (goto :eof)
+	)
 	where powershell >nul
 	if %errorlevel% equ 0 (
-		goto :powershell_expanding
+		call :powershell_expanding
+		if %errorlevel% equ 0 (goto :eof)
 	) else (
 		color 0c
 		echo WinRAR, 7-zip и powershell не найдены. Нет возможности извлечь архив.
 		pause
 		color 0F
-		goto :eof
+		exit /b 1
 	)
 	:_7zip_
 		echo.
 		echo Выбран: 7-Zip
 		call :safely ^"%_7zip%^" x ^"%archive_path%^" -o^"%public%\Downloads\^" -y
-		echo Архив извлечен
-		goto :eof
+		if %errorlevel% equ 0 (
+			echo Архив извлечен
+			goto :eof
+		)
+		echo Не удалось извлечь архив из-за ошибки
+		exit /b 1
 	:winrar_
 		echo.
 		echo Выбран: WinRAR
 		call :safely ^"%winrar%^" x -y ^"%archive_path%^" ^"%public%\Downloads\^"
-		echo Архив извлечен
-		goto :eof
+		if %errorlevel% equ 0 (
+			echo Архив извлечен
+			goto :eof
+		)
+		echo Не удалось извлечь архив из-за ошибки
+		exit /b 1
 	:powershell_expanding
 		echo.
-		echo Выбран: Powershell's Expand-Archive method
+		echo Выбран: Powershell's Expand-Archive
 		call :safely powershell -ExecutionPolicy Bypass -Command ^"Expand-Archive -Path '%archive_path%' -DestinationPath '%public%\Downloads' -Force -ErrorAction Stop^"
-		echo Архив извлечен
-		goto :eof	
+		if %errorlevel% equ 0 (
+			echo Архив извлечен
+			goto :eof
+		)
+		echo Не удалось извлечь архив из-за ошибки
+		exit /b 1
 
 :remove_archive
 	echo.
 	if "%archive_path%"=="не найден" (
-		pause
 		color 0c
-		echo C:\Genesys_SIP_Phone.zip и C:\Genesys SIP Phone.zip не найдены. Нет архива для удаления.
+		echo [Инфо] C:\Genesys_SIP_Phone.zip и C:\Genesys SIP Phone.zip не найдены. Нет архива для удаления.
 		pause
 		color 0F
-		goto :loop
+	) else (
+		del /q "%archive_path%"
 	)
-	del /q "%archive_path%"
 	goto :eof
 
 :firewall_rules
@@ -198,14 +214,22 @@ if "%1"=="" (
 	echo Проверка наличия правила входящих соединений...
 	netsh advfirewall firewall show rule name="Allow In - %exe_path%" 1>nul 2>&1
 	if %errorlevel% neq 0 (
-		call :safely netsh advfirewall firewall add rule name=^"Allow In - %exe_path%^" dir=in program=^"%exe_path%^" action=allow
-		echo Добавлено правило входящих соединений
+		netsh advfirewall firewall add rule name=^"Allow In - %exe_path%^" dir=in program=^"%exe_path%^" action=allow 1>nul 2>&1
+		if %errorlevel% neq 0 (
+			echo Добавлено правило входящих соединений
+		) else (
+			echo [Предупреждение] Не удалось добавить правило входящих соединений
+		)
 	)
 	echo Проверка наличия правила исходящих соединений...
 	netsh advfirewall firewall show rule name="Allow Out - %exe_path%" 1>nul 2>&1
 	if %errorlevel% neq 0 (
-		call :safely netsh advfirewall firewall add rule name=^"Allow Out - %exe_path%^" dir=out program=^"%exe_path%^" action=allow
-		echo Добавлено правило исходящих соединений
+		netsh advfirewall firewall add rule name=^"Allow Out - %exe_path%^" dir=out program=^"%exe_path%^" action=allow 1>nul 2>&1
+		if %errorlevel% neq 0 (
+			echo Добавлено правило исходящих соединений
+		) else (
+			echo [Предупреждение] Не удалось добавить правило исходящих соединений
+		)
 	)
 	goto :eof
 
@@ -221,7 +245,7 @@ if "%1"=="" (
 
 :policy
 	echo.
-	call :safely reg add ^"%policies_servicing_path%^" /v RepairContentServerSource /t REG_DWORD /d 2 /f
+	call :safely reg add ^"%policies_servicing_path%^" /v RepairContentServerSource /t REG_DWORD /d 2 /f || exit /b 1
 	reg delete "%policies_servicing_path%" /v UseWindowsUpdate /f 1>nul 2>&1
 	gpupdate /force
 	net stop wuauserv
@@ -237,7 +261,7 @@ if "%1"=="" (
 	    echo Код: %errorlevel%
 	    pause
 	    color 0F
-	    goto :loop
+	    exit /b 1
 	)
 	goto :eof
 :end
