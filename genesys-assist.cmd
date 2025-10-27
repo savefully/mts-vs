@@ -1,5 +1,8 @@
 @echo off
 chcp 65001 >nul
+echo Out of service
+pause
+exit
 
 set public=C:\Users\Public
 set c_path=C:\Genesys SIP Phone 
