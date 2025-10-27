@@ -1,6 +1,8 @@
 @echo off
 chcp 866 >nul
 
+set download_domain=none
+set archive_path=не найден
 set public=C:\Users\Public
 set c_path=C:\Genesys SIP Phone 
 set run_path=%public%\Desktop\RUN.bat
@@ -9,14 +11,20 @@ set winrar=C:\Program Files\WinRAR\WinRAR.exe
 set lnk_path=%public%\Desktop\Genesys SIP Phone.lnk
 set exe_path=%public%\Downloads\Genesys SIP Phone\GenesysSIPPhone.exe
 set policies_servicing_path=HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Servicing
-set archive_path=не найден
 
 net session 1>nul 2>&1
 if %errorlevel% neq 0 (
 	echo Нет прав администратора
 	pause
 	exit
-) 
+)
+
+if "%1"=="" (
+	echo [Инфо] Домен скачивания не передан
+) else (
+	echo Домен скачивания: %1
+	set download_domain=%1
+)
 
 :loop
 	echo.
@@ -27,19 +35,20 @@ if %errorlevel% neq 0 (
 	echo.
 	echo Введите номер пункта:
 	echo 0 - Выход
-	echo 1 - Установить Genesys SIP Phone (2-5 пункты)
-	echo 2 - Извлечь архив
-	echo 2.1 -- 7-Zip
-	echo 2.2 -- WinRAR
-	echo 2.3 -- Powershell
-	echo 3 - Удалить архив
-	echo 4 - Внести исключения брандмауэра для GenesysSIPPhone.exe
-	echo 5 - Записать RUN.bat на общий рабочий стол
+	echo 1 - Установить Genesys SIP Phone (2-6 пункты)
+	echo 2 - Скачать архив
+	echo 3 - Извлечь архив
+	echo 3.1 -- 7-Zip
+	echo 3.2 -- WinRAR
+	echo 3.3 -- Powershell
+	echo 4 - Удалить архив
+	echo 5 - Внести исключения брандмауэра для GenesysSIPPhone.exe
+	echo 6 - Записать RUN.bat на общий рабочий стол
 	echo === .NET 3.5 ===
-	echo 6 - Обновление политики и перезапуск wuauserv
-	echo 7 - Установка через DISM
+	echo 7 - Обновление политики и перезапуск wuauserv
+	echo 8 - Установка через DISM
 	echo.
-	set option=undefined
+	set option=Пусто
 	set /p option=Число:
 	if %option%==0 (
 		goto :end
@@ -52,38 +61,42 @@ if %errorlevel% neq 0 (
 		goto :loop
 	)
 	if %option%==2 (
-		call :expand_archive
-		goto :loop
-	)
-	if %option%==2.1 (
-		call :_7zip_
-		goto :loop
-	)
-	if %option%==2.2 (
-		call :winrar_
-		goto :loop
-	)
-	if %option%==2.3 (
-		call :powershell_expanding
+		call :download_archive
 		goto :loop
 	)
 	if %option%==3 (
-		call :remove_archive
+		call :expand_archive
+		goto :loop
+	)
+	if %option%==3.1 (
+		call :_7zip_
+		goto :loop
+	)
+	if %option%==3.2 (
+		call :winrar_
+		goto :loop
+	)
+	if %option%==3.3 (
+		call :powershell_expanding
 		goto :loop
 	)
 	if %option%==4 (
-		call :firewall_rules
+		call :remove_archive
 		goto :loop
 	)
 	if %option%==5 (
-		call :runbat
+		call :firewall_rules
 		goto :loop
 	)
 	if %option%==6 (
-		call :policy
+		call :runbat
 		goto :loop
 	)
 	if %option%==7 (
+		call :policy
+		goto :loop
+	)
+	if %option%==8 (
 		dism.exe /online /enable-feature /featurename:NetFX3
 		goto :loop
 	)
@@ -114,6 +127,14 @@ if %errorlevel% neq 0 (
 	if exist "%exe_path%" (echo Обнаружен: %exe_path%)
 	if exist "%run_path%" (echo Обнаружен: %run_path%)
 	if exist "%lnk_path%" (echo Обнаружен: %lnk_path%)
+	goto :eof
+
+:download_archive
+	if %download_domain%==none (
+		set /p download_domain=Введите домен, который должен стоять вместо * ^> soft.*.ru:
+	)
+	call :safely curl -o "C:\Genesys_SIP_Phone.zip" "https://soft.%download_domain%.ru/Genesys_SIP_Phone.zip"
+	echo Архив скачан
 	goto :eof
 
 :expand_archive
@@ -154,7 +175,7 @@ if %errorlevel% neq 0 (
 		goto :eof	
 
 :remove_archive
-	if "%archive_path%"==undefined (
+	if "%archive_path%"=="не найден" (
 		pause
 		color 0c
 		echo C:\Genesys_SIP_Phone.zip и C:\Genesys SIP Phone.zip не найдены. Нет архива для удаления.
