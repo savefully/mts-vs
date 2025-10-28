@@ -114,7 +114,7 @@ if "%1"=="" (
 			echo [+] .NET 3.5 - установлен, включен
 		)
 	)
-
+	set "archive_path=не найден"
 	if exist C:\Genesys_SIP_Phone.zip (
 		set "archive_path=C:\Genesys_SIP_Phone.zip"
 	)
