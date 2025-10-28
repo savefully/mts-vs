@@ -23,10 +23,10 @@ if "%1"=="" (
 	echo.
 	echo [Инфо] Домен скачивания не передан
 ) else (
-	echo Домен скачивания: %1
-	set "download_domain=%1"
+	echo Домен скачивания: %~1
+	set "download_domain=%~1"
 )
-
+pause
 :loop
 	echo.
 	echo.
