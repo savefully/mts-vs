@@ -2,7 +2,7 @@
 chcp 866 >nul
 
 set "download_domain=none"
-set "archive_path=­¥ ­ ©¤¥­"
+set "archive_path=Â­Â¥ Â­Â Â©Â¤Â¥Â­"
 set "public=C:\Users\Public"
 set "c_path=C:\Genesys SIP Phone" 
 set "run_path=%public%\Desktop\RUN.bat"
@@ -14,43 +14,43 @@ set "policies_servicing_path=HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Poli
 
 net session 1>nul 2>&1
 if %errorlevel% neq 0 (
-	echo ¥â ¯à ¢  ¤¬¨­¨áâà â®à 
+	echo ÂÂ¥Ã¢ Â¯Ã Â Â¢ Â Â¤Â¬Â¨Â­Â¨Ã¡Ã¢Ã Â Ã¢Â®Ã Â 
 	pause
 	exit
 )
 
 if "%1"=="" (
 	echo.
-	echo [ˆ­ä®] „®¬¥­ áª ç¨¢ ­¨ï ­¥ ¯¥à¥¤ ­
+	echo [Ë†Â­Ã¤Â®] â€žÂ®Â¬Â¥Â­ Ã¡ÂªÂ Ã§Â¨Â¢Â Â­Â¨Ã¯ Â­Â¥ Â¯Â¥Ã Â¥Â¤Â Â­
 ) else (
-	echo „®¬¥­ áª ç¨¢ ­¨ï: %~1
+	echo â€žÂ®Â¬Â¥Â­ Ã¡ÂªÂ Ã§Â¨Â¢Â Â­Â¨Ã¯: %~1
 	set "download_domain=%~1"
 )
-pause
+
 :loop
 	echo.
 	echo.
-	echo ++++++++ €áá¨áâ¥­â ãáâ ­®¢ª¨ Genesys SIP Phone ++++++++
+	echo ++++++++ â‚¬Ã¡Ã¡Â¨Ã¡Ã¢Â¥Â­Ã¢ Ã£Ã¡Ã¢Â Â­Â®Â¢ÂªÂ¨ Genesys SIP Phone ++++++++
 	echo.
 	call :checks
 	echo.
-	echo ‚¢¥¤¨â¥ ­®¬¥à ¯ã­ªâ :
-	echo 0 - ‚ëå®¤
-	echo 1 - “áâ ­®¢¨âì Genesys SIP Phone (2-6 ¯ã­ªâë)
-	echo 2 = ‘ª ç âì  àå¨¢
-	echo 3 = ˆ§¢«¥çì  àå¨¢
+	echo â€šÂ¢Â¥Â¤Â¨Ã¢Â¥ Â­Â®Â¬Â¥Ã  Â¯Ã£Â­ÂªÃ¢Â :
+	echo 0 - â€šÃ«Ã¥Â®Â¤
+	echo 1 - â€œÃ¡Ã¢Â Â­Â®Â¢Â¨Ã¢Ã¬ Genesys SIP Phone (2-6 Â¯Ã£Â­ÂªÃ¢Ã«)
+	echo 2 = â€˜ÂªÂ Ã§Â Ã¢Ã¬ Â Ã Ã¥Â¨Â¢
+	echo 3 = Ë†Â§Â¢Â«Â¥Ã§Ã¬ Â Ã Ã¥Â¨Â¢
 	echo 3.1 -- 7-Zip
 	echo 3.2 -- WinRAR
 	echo 3.3 -- Powershell
-	echo 4 - “¤ «¨âì  àå¨¢
-	echo 5 - ‚­¥áâ¨ ¨áª«îç¥­¨ï ¡à ­¤¬ ãíà  ¤«ï GenesysSIPPhone.exe
-	echo 6 - ‡ ¯¨á âì RUN.bat ­  ®¡é¨© à ¡®ç¨© áâ®«
+	echo 4 - â€œÂ¤Â Â«Â¨Ã¢Ã¬ Â Ã Ã¥Â¨Â¢
+	echo 5 - â€šÂ­Â¥Ã¡Ã¢Â¨ Â¨Ã¡ÂªÂ«Ã®Ã§Â¥Â­Â¨Ã¯ Â¡Ã Â Â­Â¤Â¬Â Ã£Ã­Ã Â  Â¤Â«Ã¯ GenesysSIPPhone.exe
+	echo 6 - â€¡Â Â¯Â¨Ã¡Â Ã¢Ã¬ RUN.bat Â­Â  Â®Â¡Ã©Â¨Â© Ã Â Â¡Â®Ã§Â¨Â© Ã¡Ã¢Â®Â«
 	echo #### .NET 3.5 ####
-	echo 7 - Ž¡­®¢«¥­¨¥ ¯®«¨â¨ª¨ ¨ ¯¥à¥§ ¯ãáª wuauserv
-	echo 8 - “áâ ­®¢ª  ç¥à¥§ DISM
+	echo 7 - Å½Â¡Â­Â®Â¢Â«Â¥Â­Â¨Â¥ Â¯Â®Â«Â¨Ã¢Â¨ÂªÂ¨ Â¨ Â¯Â¥Ã Â¥Â§Â Â¯Ã£Ã¡Âª wuauserv
+	echo 8 - â€œÃ¡Ã¢Â Â­Â®Â¢ÂªÂ  Ã§Â¥Ã Â¥Â§ DISM
 	echo.
-	set "option=ãáâ®"
-	set /p "option=—¨á«®:"
+	set "option=ÂÃ£Ã¡Ã¢Â®"
+	set /p "option=â€”Â¨Ã¡Â«Â®:"
 	if %option%==0 (
 		goto :end
 	)
@@ -99,50 +99,50 @@ pause
 		goto :loop
 	)
 	echo.
-	echo ¥â ¯ã­ªâ : %option%.
+	echo ÂÂ¥Ã¢ Â¯Ã£Â­ÂªÃ¢Â : %option%.
 	goto :loop
 
 :checks
 	reg query "HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5" /v Install 1>nul 2>&1
 	if %errorlevel% neq 0 (
-		echo [x] .NET 3.5 - ­¥ ãáâ ­®¢«¥­
+		echo [x] .NET 3.5 - Â­Â¥ Ã£Ã¡Ã¢Â Â­Â®Â¢Â«Â¥Â­
 	) else (
 		reg query "HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5" /v Install | findstr "0x1" 1>nul 2>&1
 		if %errorlevel% neq 0 (
-			echo [-] .NET 3.5 - ãáâ ­®¢«¥­, ­® ®âª«îç¥­
+			echo [-] .NET 3.5 - Ã£Ã¡Ã¢Â Â­Â®Â¢Â«Â¥Â­, Â­Â® Â®Ã¢ÂªÂ«Ã®Ã§Â¥Â­
 		) else (
-			echo [+] .NET 3.5 - ãáâ ­®¢«¥­, ¢ª«îç¥­
+			echo [+] .NET 3.5 - Ã£Ã¡Ã¢Â Â­Â®Â¢Â«Â¥Â­, Â¢ÂªÂ«Ã®Ã§Â¥Â­
 		)
 	)
-	set "archive_path=­¥ ­ ©¤¥­"
+	set "archive_path=Â­Â¥ Â­Â Â©Â¤Â¥Â­"
 	if exist C:\Genesys_SIP_Phone.zip (
 		set "archive_path=C:\Genesys_SIP_Phone.zip"
 	)
 	if exist "C:\Genesys SIP Phone.zip" (
 		set "archive_path=C:\Genesys SIP Phone.zip"
 	)
-	echo €àå¨¢ ¤«ï ¨§¢«¥ç­¨ï: %archive_path%
-	if exist "%c_path%" (echo Ž¡­ àã¦¥­: %c_path%)
-	if exist "%exe_path%" (echo Ž¡­ àã¦¥­: %exe_path%)
-	if exist "%run_path%" (echo Ž¡­ àã¦¥­: %run_path%)
-	if exist "%lnk_path%" (echo Ž¡­ àã¦¥­: %lnk_path%)
+	echo â‚¬Ã Ã¥Â¨Â¢ Â¤Â«Ã¯ Â¨Â§Â¢Â«Â¥Ã§Â­Â¨Ã¯: %archive_path%
+	if exist "%c_path%" (echo Å½Â¡Â­Â Ã Ã£Â¦Â¥Â­: %c_path%)
+	if exist "%exe_path%" (echo Å½Â¡Â­Â Ã Ã£Â¦Â¥Â­: %exe_path%)
+	if exist "%run_path%" (echo Å½Â¡Â­Â Ã Ã£Â¦Â¥Â­: %run_path%)
+	if exist "%lnk_path%" (echo Å½Â¡Â­Â Ã Ã£Â¦Â¥Â­: %lnk_path%)
 	goto :eof
 
 :download_archive
 	echo.
 	if "%download_domain%"=="none" (
-		set /p "download_domain=‚¢¥¤¨â¥ ¤®¬¥­, ª®â®àë© ¤®«¦¥­ áâ®ïâì ¢¬¥áâ® * ^> soft.*.ru:"
+		set /p "download_domain=â€šÂ¢Â¥Â¤Â¨Ã¢Â¥ Â¤Â®Â¬Â¥Â­, ÂªÂ®Ã¢Â®Ã Ã«Â© Â¤Â®Â«Â¦Â¥Â­ Ã¡Ã¢Â®Ã¯Ã¢Ã¬ Â¢Â¬Â¥Ã¡Ã¢Â® * ^> soft.*.ru:"
 	)
 	call :safely curl -o ^"C:\Genesys_SIP_Phone.zip^" ^"https://soft.%download_domain%.ru/Genesys_SIP_Phone.zip^" || exit /b 1
 	set "archive_path=C:\Genesys_SIP_Phone.zip"
-	echo €àå¨¢ áª ç ­
+	echo â‚¬Ã Ã¥Â¨Â¢ Ã¡ÂªÂ Ã§Â Â­
 	goto :eof
 
 :expand_archive
 	echo.
-	if "%archive_path%"=="­¥ ­ ©¤¥­" (
+	if "%archive_path%"=="Â­Â¥ Â­Â Â©Â¤Â¥Â­" (
 		color 0c
-		echo C:\Genesys_SIP_Phone.zip ¨ C:\Genesys SIP Phone.zip ­¥ ­ ©¤¥­ë. ¥â  àå¨¢  ¤«ï ¨§¢«¥ç¥­¨ï.
+		echo C:\Genesys_SIP_Phone.zip Â¨ C:\Genesys SIP Phone.zip Â­Â¥ Â­Â Â©Â¤Â¥Â­Ã«. ÂÂ¥Ã¢ Â Ã Ã¥Â¨Â¢Â  Â¤Â«Ã¯ Â¨Â§Â¢Â«Â¥Ã§Â¥Â­Â¨Ã¯.
 		pause
 		color 0F
 		exit /b 1
@@ -161,75 +161,75 @@ pause
 		if %errorlevel% equ 0 (goto :eof)
 	) else (
 		color 0c
-		echo WinRAR, 7-zip ¨ powershell ­¥ ­ ©¤¥­ë. ¥â ¢®§¬®¦­®áâ¨ ¨§¢«¥çì  àå¨¢.
+		echo WinRAR, 7-zip Â¨ powershell Â­Â¥ Â­Â Â©Â¤Â¥Â­Ã«. ÂÂ¥Ã¢ Â¢Â®Â§Â¬Â®Â¦Â­Â®Ã¡Ã¢Â¨ Â¨Â§Â¢Â«Â¥Ã§Ã¬ Â Ã Ã¥Â¨Â¢.
 		pause
 		color 0F
 		exit /b 1
 	)
 	:_7zip_
 		echo.
-		echo ‚ë¡à ­: 7-Zip
+		echo â€šÃ«Â¡Ã Â Â­: 7-Zip
 		call :safely ^"%_7zip%^" x ^"%archive_path%^" -o^"%public%\Downloads\^" -y
 		if %errorlevel% equ 0 (
-			echo €àå¨¢ ¨§¢«¥ç¥­
+			echo â‚¬Ã Ã¥Â¨Â¢ Â¨Â§Â¢Â«Â¥Ã§Â¥Â­
 			goto :eof
 		)
-		echo ¥ ã¤ «®áì ¨§¢«¥çì  àå¨¢ ¨§-§  ®è¨¡ª¨
+		echo ÂÂ¥ Ã£Â¤Â Â«Â®Ã¡Ã¬ Â¨Â§Â¢Â«Â¥Ã§Ã¬ Â Ã Ã¥Â¨Â¢ Â¨Â§-Â§Â  Â®Ã¨Â¨Â¡ÂªÂ¨
 		exit /b 1
 	:winrar_
 		echo.
-		echo ‚ë¡à ­: WinRAR
+		echo â€šÃ«Â¡Ã Â Â­: WinRAR
 		call :safely ^"%winrar%^" x -y ^"%archive_path%^" ^"%public%\Downloads\^"
 		if %errorlevel% equ 0 (
-			echo €àå¨¢ ¨§¢«¥ç¥­
+			echo â‚¬Ã Ã¥Â¨Â¢ Â¨Â§Â¢Â«Â¥Ã§Â¥Â­
 			goto :eof
 		)
-		echo ¥ ã¤ «®áì ¨§¢«¥çì  àå¨¢ ¨§-§  ®è¨¡ª¨
+		echo ÂÂ¥ Ã£Â¤Â Â«Â®Ã¡Ã¬ Â¨Â§Â¢Â«Â¥Ã§Ã¬ Â Ã Ã¥Â¨Â¢ Â¨Â§-Â§Â  Â®Ã¨Â¨Â¡ÂªÂ¨
 		exit /b 1
 	:powershell_expanding
 		echo.
-		echo ‚ë¡à ­: Powershell's Expand-Archive
+		echo â€šÃ«Â¡Ã Â Â­: Powershell's Expand-Archive
 		call :safely powershell -ExecutionPolicy Bypass -Command ^"Expand-Archive -Path '%archive_path%' -DestinationPath '%public%\Downloads' -Force -ErrorAction Stop^"
 		if %errorlevel% equ 0 (
-			echo €àå¨¢ ¨§¢«¥ç¥­
+			echo â‚¬Ã Ã¥Â¨Â¢ Â¨Â§Â¢Â«Â¥Ã§Â¥Â­
 			goto :eof
 		)
-		echo ¥ ã¤ «®áì ¨§¢«¥çì  àå¨¢ ¨§-§  ®è¨¡ª¨
+		echo ÂÂ¥ Ã£Â¤Â Â«Â®Ã¡Ã¬ Â¨Â§Â¢Â«Â¥Ã§Ã¬ Â Ã Ã¥Â¨Â¢ Â¨Â§-Â§Â  Â®Ã¨Â¨Â¡ÂªÂ¨
 		exit /b 1
 
 :remove_archive
 	echo.
-	if "%archive_path%"=="­¥ ­ ©¤¥­" (
+	if "%archive_path%"=="Â­Â¥ Â­Â Â©Â¤Â¥Â­" (
 		color 0c
-		echo [ˆ­ä®] C:\Genesys_SIP_Phone.zip ¨ C:\Genesys SIP Phone.zip ­¥ ­ ©¤¥­ë. ¥â  àå¨¢  ¤«ï ã¤ «¥­¨ï.
+		echo [Ë†Â­Ã¤Â®] C:\Genesys_SIP_Phone.zip Â¨ C:\Genesys SIP Phone.zip Â­Â¥ Â­Â Â©Â¤Â¥Â­Ã«. ÂÂ¥Ã¢ Â Ã Ã¥Â¨Â¢Â  Â¤Â«Ã¯ Ã£Â¤Â Â«Â¥Â­Â¨Ã¯.
 		pause
 		color 0F
 	) else (
 		del /q "%archive_path%"
-		echo €àå¨¢ ã¤ «¥­
+		echo â‚¬Ã Ã¥Â¨Â¢ Ã£Â¤Â Â«Â¥Â­
 	)
 	goto :eof
 
 :firewall_rules
 	echo.
-	echo à®¢¥àª  ­ «¨ç¨ï ¯à ¢¨«  ¢å®¤ïé¨å á®¥¤¨­¥­¨©...
+	echo ÂÃ Â®Â¢Â¥Ã ÂªÂ  Â­Â Â«Â¨Ã§Â¨Ã¯ Â¯Ã Â Â¢Â¨Â«Â  Â¢Ã¥Â®Â¤Ã¯Ã©Â¨Ã¥ Ã¡Â®Â¥Â¤Â¨Â­Â¥Â­Â¨Â©...
 	netsh advfirewall firewall show rule name="Allow In - %exe_path%" 1>nul 2>&1
 	if %errorlevel% neq 0 (
 		netsh advfirewall firewall add rule name=^"Allow In - %exe_path%^" dir=in program=^"%exe_path%^" action=allow 1>nul 2>&1
 		if %errorlevel% neq 0 (
-			echo „®¡ ¢«¥­® ¯à ¢¨«® ¢å®¤ïé¨å á®¥¤¨­¥­¨©
+			echo â€žÂ®Â¡Â Â¢Â«Â¥Â­Â® Â¯Ã Â Â¢Â¨Â«Â® Â¢Ã¥Â®Â¤Ã¯Ã©Â¨Ã¥ Ã¡Â®Â¥Â¤Â¨Â­Â¥Â­Â¨Â©
 		) else (
-			echo [à¥¤ã¯à¥¦¤¥­¨¥] ¥ ã¤ «®áì ¤®¡ ¢¨âì ¯à ¢¨«® ¢å®¤ïé¨å á®¥¤¨­¥­¨©
+			echo [ÂÃ Â¥Â¤Ã£Â¯Ã Â¥Â¦Â¤Â¥Â­Â¨Â¥] ÂÂ¥ Ã£Â¤Â Â«Â®Ã¡Ã¬ Â¤Â®Â¡Â Â¢Â¨Ã¢Ã¬ Â¯Ã Â Â¢Â¨Â«Â® Â¢Ã¥Â®Â¤Ã¯Ã©Â¨Ã¥ Ã¡Â®Â¥Â¤Â¨Â­Â¥Â­Â¨Â©
 		)
 	)
-	echo à®¢¥àª  ­ «¨ç¨ï ¯à ¢¨«  ¨áå®¤ïé¨å á®¥¤¨­¥­¨©...
+	echo ÂÃ Â®Â¢Â¥Ã ÂªÂ  Â­Â Â«Â¨Ã§Â¨Ã¯ Â¯Ã Â Â¢Â¨Â«Â  Â¨Ã¡Ã¥Â®Â¤Ã¯Ã©Â¨Ã¥ Ã¡Â®Â¥Â¤Â¨Â­Â¥Â­Â¨Â©...
 	netsh advfirewall firewall show rule name="Allow Out - %exe_path%" 1>nul 2>&1
 	if %errorlevel% neq 0 (
 		netsh advfirewall firewall add rule name=^"Allow Out - %exe_path%^" dir=out program=^"%exe_path%^" action=allow 1>nul 2>&1
 		if %errorlevel% neq 0 (
-			echo „®¡ ¢«¥­® ¯à ¢¨«® ¨áå®¤ïé¨å á®¥¤¨­¥­¨©
+			echo â€žÂ®Â¡Â Â¢Â«Â¥Â­Â® Â¯Ã Â Â¢Â¨Â«Â® Â¨Ã¡Ã¥Â®Â¤Ã¯Ã©Â¨Ã¥ Ã¡Â®Â¥Â¤Â¨Â­Â¥Â­Â¨Â©
 		) else (
-			echo [à¥¤ã¯à¥¦¤¥­¨¥] ¥ ã¤ «®áì ¤®¡ ¢¨âì ¯à ¢¨«® ¨áå®¤ïé¨å á®¥¤¨­¥­¨©
+			echo [ÂÃ Â¥Â¤Ã£Â¯Ã Â¥Â¦Â¤Â¥Â­Â¨Â¥] ÂÂ¥ Ã£Â¤Â Â«Â®Ã¡Ã¬ Â¤Â®Â¡Â Â¢Â¨Ã¢Ã¬ Â¯Ã Â Â¢Â¨Â«Â® Â¨Ã¡Ã¥Â®Â¤Ã¯Ã©Â¨Ã¥ Ã¡Â®Â¥Â¤Â¨Â­Â¥Â­Â¨Â©
 		)
 	)
 	goto :eof
@@ -241,7 +241,7 @@ pause
 		echo cd ^"C:\Users\Public\Downloads\Genesys SIP Phone^"
 		echo start "GSP" GenesysSIPPhone.exe -config genesys
 	) > "%run_path%"
-	echo RUN.bat § ¯¨á ­
+	echo RUN.bat Â§Â Â¯Â¨Ã¡Â Â­
 	goto :eof
 
 :policy
@@ -258,12 +258,13 @@ pause
 	%* 1>nul 2>&1
 	if %errorlevel% neq 0 (
 		color 0c
-	    echo [Žè¨¡ª ] Š®¬ ­¤ : %*
-	    echo Š®¤: %errorlevel%
+	    echo [Å½Ã¨Â¨Â¡ÂªÂ ] Å Â®Â¬Â Â­Â¤Â : %*
+	    echo Å Â®Â¤: %errorlevel%
 	    pause
 	    color 0F
 	    exit /b 1
 	)
 	goto :eof
 :end
+
 pause
