@@ -148,11 +148,11 @@ function RunCmd {
     }
     return $LASTEXITCODE
 }
-# function specifyDownloadDomain {
-#     if ($global:downloadDomain) { return }
-#     WH 'Input domain: soft.?.ru'
-#     $global:downloadDomain = Read-Host ":"
-# }
+function specifyDownloadDomain {
+    if ($global:downloadDomain) { return }
+    WH 'Input domain: soft.?.ru'
+    $global:downloadDomain = Read-Host ":"
+}
 function ChoosePathByRegex {
     param ($regex)
     $filenames = Get-ChildItem -Path "C:\" -Filter $regex | Select-Object -ExpandProperty Name
