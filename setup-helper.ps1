@@ -28,7 +28,8 @@ $separator
 0.1 - Precheck (NetFx3 state; Kerio and Citrix versions, paths)
 
 Genesys SIP Phone installation:
-  1 - Basic installation: 1.1...1.5
+  1 - Basic installation: 1.1...1.5 (not 1.0)
+1.0 - Download archive
 1.1 - Expand archive
 1.2 - Remove archive
 1.3 - Create shortcuts
@@ -370,6 +371,12 @@ function RemoveArchive {
         Remove-Item -Path $archivePathCC -ErrorAction Stop
     }
 }
+function downloadArchive {
+    specifyDownloadDomain
+    curl -o "C:\Genesys_SIP_Phone.zip" "https://soft.$download_domain.ru/Genesys_SIP_Phone.zip"
+    # Invoke-WebRequest -Uri ('https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip') -OutFile "C:\Genesys_SIP_Phone.zip"
+    WHR "[Success] download archive" "[Failure] download archive"
+}
 function Case {
     $ErrorActionPreference = 'Stop'
     Write-Host $menuString
@@ -387,6 +394,8 @@ function Case {
         WH "Shortcut created: C:\Users\Public\Desktop"
         SetFirewallRules
         HandleAutoclosingRunBat
+    } elseif ($action -eq "1.0") {
+        downloadArchive
     } elseif ($action -eq "1.1") {
         HandleExpanding
     } elseif ($action -eq "1.2") {
@@ -420,10 +429,6 @@ function Case {
         WH "Firewall is disabled."
     } elseif ($action -eq "9.2") {
         AddKerioConnection '194.0.162.104'
-    # } elseif ($action -eq "13") {
-        # specifyDownloadDomain
-        # Invoke-WebRequest -Uri ('https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip') -OutFile "C:\Genesys_SIP_Phone.zip"
-        # WHR "[Success] download archive" "[Failure] download archive"
     # } elseif ($action -eq "16") {
         # $filename = ChoosePathByRegex "*kerio*.msi"
         # if ($filename -eq 'exit') { return }
