@@ -373,7 +373,7 @@ function RemoveArchive {
 }
 function downloadArchive {
     specifyDownloadDomain
-    curl -o "C:\Genesys_SIP_Phone.zip" "https://soft.$download_domain.ru/Genesys_SIP_Phone.zip"
+    curl -o "C:\Genesys_SIP_Phone.zip" "https://soft.$downloadDomain.ru/Genesys_SIP_Phone.zip"
     # Invoke-WebRequest -Uri ('https://soft.' + $downloadDomain + '.ru/Genesys_SIP_Phone.zip') -OutFile "C:\Genesys_SIP_Phone.zip"
     WHR "[Success] download archive" "[Failure] download archive"
 }
